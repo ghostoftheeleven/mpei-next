@@ -35,7 +35,7 @@ jobs:
             -F "platform=ios" \
             -F "note=MPEI Hub ${GITHUB_SHA}" \
             -o response.json
-          cat response.json
+          # The response also has the privateKey of the app: never print the whole file (the logs are public)
           KEY=$(jq -r .publicKey response.json)
           echo "Appetize public key: ${KEY}"
           echo "Open: https://appetize.io/app/${KEY}"
