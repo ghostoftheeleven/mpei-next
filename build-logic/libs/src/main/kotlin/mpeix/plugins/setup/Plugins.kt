@@ -9,5 +9,6 @@ internal object Plugins {
     const val Kover = "org.jetbrains.kotlinx.kover"
     const val KotlinAndroid = "kotlin-android"
     const val KotlinJvm = "kotlin"
+    const val KotlinMultiplatform = "org.jetbrains.kotlin.multiplatform"
     const val ComposeCompiler = "org.jetbrains.kotlin.plugin.compose"
 }

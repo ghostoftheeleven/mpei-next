@@ -1,9 +1,11 @@
 plugins {
-    alias(mpeix.plugins.lib.kotlin)
+    alias(mpeix.plugins.lib.kmp)
 }
 
-dependencies {
-    compileOnly(androidJar)
-
-    testImplementation(libs.kotlin.test)
+kotlin {
+    sourceSets {
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
 }

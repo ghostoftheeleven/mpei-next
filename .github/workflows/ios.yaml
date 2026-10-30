@@ -14,6 +14,9 @@ on:
     paths:
       - "iosApp/**"
       - "modules/shared/**"
+      - "modules/ext/**"
+      - "modules/lib/coroutines/**"
+      - "build-logic/**"
       - ".github/workflows/ios.yaml"
 
 env:
@@ -48,6 +51,14 @@ jobs:
             'org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' \
             'kotlin.daemon.jvm.options=-Xmx3g' \
             'kotlin.native.jvmArgs=-Xmx4g' >> ~/.gradle/gradle.properties
+
+      # The multiplatform foundation (M1) is not part of the app yet: check that it compiles for the iOS targets
+      - name: Compile the KMP foundation for iOS
+        run: ./gradlew :ext_kotlin:compileKotlinIosSimulatorArm64 :ext_koin:compileKotlinIosSimulatorArm64 :lib_coroutines:compileKotlinIosSimulatorArm64
+
+      # The tests run in the iOS simulator: they check that Base64 behaves on Kotlin/Native as it does on the JVM
+      - name: Test the KMP foundation on the iOS simulator
+        run: ./gradlew :ext_kotlin:iosSimulatorArm64Test
 
       - name: Install XcodeGen
         run: brew install xcodegen

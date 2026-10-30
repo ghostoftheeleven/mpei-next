@@ -1,7 +1,11 @@
 plugins {
-    alias(mpeix.plugins.util.kotlin)
+    alias(mpeix.plugins.lib.kmp)
 }
 
-dependencies {
-    implementation(libs.koin.core)
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.koin.core)
+        }
+    }
 }

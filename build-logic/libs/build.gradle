@@ -57,6 +57,10 @@ gradlePlugin {
         id = "mpeix.lib.kotlin"
         implementationClass = "mpeix.plugins.LibKotlinConventionPlugin"
     }
+    plugins.create("LibKmpConventionPlugin") {
+        id = "mpeix.lib.kmp"
+        implementationClass = "mpeix.plugins.LibKmpConventionPlugin"
+    }
     plugins.create("UtilKotlinConventionPlugin") {
         id = "mpeix.util.kotlin"
         implementationClass = "mpeix.plugins.UtilKotlinConventionPlugin"
