@@ -44,11 +44,12 @@ internal class BarsCookieJar(
         val domain = (cookie.domain ?: requestUrl.host).removePrefix(".").lowercase()
         val path = cookie.path?.takeIf { it.startsWith("/") } ?: defaultPath(requestUrl.encodedPath)
         val time = now()
-        // maxAge 0 means that the cookie has no Max-Age; a Max-Age that deletes a cookie comes with an expiry in the past
+        val maxAge = cookie.maxAge
         val expires = cookie.expires
         val expiresAt = when {
-            cookie.maxAge > 0 -> time + cookie.maxAge * MILLIS_IN_SECOND
+            maxAge != null && maxAge > 0 -> time + maxAge * MILLIS_IN_SECOND
             expires != null -> expires.timestamp
+            maxAge != null -> time // Max-Age=0 deletes the cookie
             else -> null
         }
 
