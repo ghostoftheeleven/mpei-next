@@ -27,12 +27,13 @@
 
 ## Как работать
 
-- **Проверка:** Android SDK есть (`C:\Users\rrust\AppData\Local\Android\Sdk`, платформа 36, build-tools 35.0.0, эмулятор и образы).
-  `local.properties` с `sdk.dir` лежит в `.gitignore`, его нужно создать заново в новой папке.
-- **Кириллица в пути ломает Gradle:** JVM-тесты падают с `ClassNotFoundException`, а `:app:assembleDebug` с
-  `IOException: Invalid file path`. Проект переносят на путь без кириллицы; после переноса проверить, что
-  `./gradlew :app:assembleDebug` и `:lib_navigator:jvmTest` проходят напрямую (раньше обходилось диском `subst M:`).
-  Если сборка на ASCII-пути всё равно падает, причина в другом (Java 27 вместо 21? SDK?) — разбираться.
+- **Проверка локально работает.** Проект лежит на пути без кириллицы (`C:\dev\MPEI Hub\mpei-next`).
+  `./gradlew :app:assembleDebug` (около 3 минут с нуля, собирает debug APK) и `./gradlew :<модуль>:jvmTest` проходят.
+  Android SDK: `C:\Users\rrust\AppData\Local\Android\Sdk` (платформа 36, build-tools 35.0.0, эмулятор и образы).
+- **`local.properties`** лежит в `.gitignore`, в новой папке его нужно создать **с прямыми слэшами**:
+  `sdk.dir=C:/Users/rrust/AppData/Local/Android/Sdk`. Одинарные обратные слэши в `.properties` это экранирование,
+  путь превращается в мусор и сборка падает с `Invalid file path`.
+- **Кириллица в пути ломает JVM-тесты** (`ClassNotFoundException`, компиляция при этом проходит): держать проект на ASCII-пути.
 - **iOS компилируется и тестируется только в CI** (workflow `iOS`, macOS-раннер). Раннер иногда не находится 15 минут и
   прогон отменяется без шагов: это не ошибка кода, достаточно `gh run rerun`.
 - **Kotlin/Native: в именах тестов нельзя `( ) , . ; : / < >`** (в обратных кавычках). Тесты `lib_bars_*` с запятыми проходят
