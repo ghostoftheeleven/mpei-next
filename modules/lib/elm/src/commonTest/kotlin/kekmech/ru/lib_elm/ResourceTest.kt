@@ -76,7 +76,7 @@ internal class ResourceTest {
     }
 
     @Test
-    fun `merge function works correctly (loading + error + data)`() {
+    fun `merge function works correctly for loading and error and data`() {
         val listOfLoadingErrorData =
             listOf(
                 Mocks.loadingResource,
@@ -90,7 +90,7 @@ internal class ResourceTest {
     }
 
     @Test
-    fun `merge function works correctly (loading + data)`() {
+    fun `merge function works correctly for loading and data`() {
         val listOfLoadingErrorData =
             listOf(
                 Mocks.loadingResource,
@@ -103,7 +103,7 @@ internal class ResourceTest {
     }
 
     @Test
-    fun `merge function works correctly (error + data)`() {
+    fun `merge function works correctly for error and data`() {
         val listOfLoadingErrorData =
             listOf(
                 Mocks.errorResource,
@@ -116,7 +116,7 @@ internal class ResourceTest {
     }
 
     @Test
-    fun `merge function works correctly (data + data)`() {
+    fun `merge function works correctly for data and data`() {
         val listOfData =
             listOf(
                 Mocks.dataResource.copy(value = "Data 1"),
