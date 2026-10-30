@@ -24,14 +24,37 @@ import kekmech.ru.ui_theme.theme.MpeixTheme
  *
  * @param role accessibility role of the options: [Role.Tab] for tabs, [Role.RadioButton] for a setting
  */
+// The defaults are overloads, not default arguments: a generic composable with a composable lambda that returns a
+// String and with default arguments does not compile for Kotlin/Native (Platform declaration clash of the $default stub)
 @Composable
 public fun <T> SegmentedControl(
     options: List<T>,
     selected: T,
     onSelect: (T) -> Unit,
     label: @Composable (T) -> String,
-    modifier: Modifier = Modifier,
-    role: Role = Role.Tab,
+) {
+    SegmentedControl(options, selected, onSelect, label, Modifier, Role.Tab)
+}
+
+@Composable
+public fun <T> SegmentedControl(
+    options: List<T>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    label: @Composable (T) -> String,
+    modifier: Modifier,
+) {
+    SegmentedControl(options, selected, onSelect, label, modifier, Role.Tab)
+}
+
+@Composable
+public fun <T> SegmentedControl(
+    options: List<T>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    label: @Composable (T) -> String,
+    modifier: Modifier,
+    role: Role,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
