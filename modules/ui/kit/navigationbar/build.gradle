@@ -1,9 +1,0 @@
-plugins {
-    alias(mpeix.plugins.lib.android.compose)
-}
-
-dependencies {
-    implementation(project(":ui_theme"))
-    implementation(libs.compose.material3)
-    implementation(libs.compose.material.icons.core)
-}

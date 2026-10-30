@@ -1,0 +1,75 @@
+name: iOS Simulator
+
+# A build for the iOS SIMULATOR (arm64), not for a device: cloud simulators such as Appetize run only these builds.
+# Started by hand (Actions -> iOS Simulator -> Run workflow), the result is the artifact ios-simulator-app with a zip of
+# the .app bundle. The normal "iOS" workflow builds the unsigned .ipa for a device.
+
+on:
+  workflow_dispatch:
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.unsafe.configuration-cache=false"
+
+jobs:
+  simulator-app:
+    name: Build the .app for the simulator
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: adopt
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Gradle memory
+        run: |
+          mkdir -p ~/.gradle
+          printf '%s\n' \
+            'org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' \
+            'kotlin.daemon.jvm.options=-Xmx3g' \
+            'kotlin.native.jvmArgs=-Xmx4g' >> ~/.gradle/gradle.properties
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        working-directory: iosApp
+        run: xcodegen generate
+
+      - name: Build for the simulator
+        working-directory: iosApp
+        run: |
+          xcodebuild \
+            -project iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Pack the .app
+        run: |
+          APP=$(find iosApp/build/Build/Products/Release-iphonesimulator -maxdepth 1 -name '*.app' | head -n 1)
+          echo "Built: $APP"
+          du -sh "$APP"
+          mkdir -p out
+          ditto -c -k --sequesterRsrc --keepParent "$APP" out/MPEI-Hub-simulator.zip
+          ls -la out
+
+      - name: Upload the .app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: out/MPEI-Hub-simulator.zip

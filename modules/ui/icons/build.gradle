@@ -1,8 +1,0 @@
-plugins {
-    alias(mpeix.plugins.lib.android.compose)
-}
-
-dependencies {
-    implementation(libs.compose.material3)
-    implementation(project(":res_icons"))
-}
