@@ -5,7 +5,6 @@ import com.tencent.mmkv.MMKV
 import kekmech.ru.ext_android.AppLocales
 import kekmech.ru.feature_app_settings_api.data.AppEnvironmentRepository
 import kekmech.ru.lib_app_lifecycle.AppLifecycleObserver
-import kekmech.ru.lib_elm.TimberLogger
 import kekmech.ru.lib_navigation.Router
 import kekmech.ru.lib_navigation.di.RouterHolder
 import kekmech.ru.lib_network.ServiceUrlResolver

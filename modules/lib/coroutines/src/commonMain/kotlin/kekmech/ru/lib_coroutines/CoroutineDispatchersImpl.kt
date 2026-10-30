@@ -11,5 +11,5 @@ internal class CoroutineDispatchersImpl : CoroutineDispatchers {
 
     override fun unconfined(): CoroutineDispatcher = Dispatchers.Unconfined
 
-    override fun io(): CoroutineDispatcher = Dispatchers.IO
+    override fun io(): CoroutineDispatcher = ioDispatcher()
 }

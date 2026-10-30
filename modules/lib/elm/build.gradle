@@ -1,17 +1,14 @@
 plugins {
-    alias(mpeix.plugins.lib.android)
+    alias(mpeix.plugins.lib.kmp)
 }
 
-dependencies {
-    implementation(libs.androidx.appCompat)
-    implementation(libs.androidx.coreKtx)
-    implementation(libs.google.material)
-    compileOnly(libs.timber)
-
-    implementation(libs.vivid.elmslie.android)
-    implementation(libs.vivid.elmslie.core)
-
-    implementation(project(":ext_android"))
-
-    testImplementation(libs.kotlin.test)
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
 }

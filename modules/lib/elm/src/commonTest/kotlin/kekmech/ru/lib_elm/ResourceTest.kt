@@ -1,7 +1,8 @@
 package kekmech.ru.lib_elm
 
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 internal class ResourceTest {
 
@@ -55,7 +56,7 @@ internal class ResourceTest {
 
     @Test
     fun `toResource function works correctly`() {
-        assert(Error("Something went wrong").toResource<Error>() is Resource.Error)
+        assertTrue(Error("Something went wrong").toResource<Error>() is Resource.Error)
         assertEquals(
             expected = Mocks.dataResource,
             actual = "Hello world".toResource(),
