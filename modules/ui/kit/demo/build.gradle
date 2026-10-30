@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.compose.activity)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.core)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
 }

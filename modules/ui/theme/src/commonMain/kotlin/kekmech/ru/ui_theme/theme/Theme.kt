@@ -8,16 +8,13 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalInspectionMode
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kekmech.ru.ui_theme.color.DarkMpeixPalette
 import kekmech.ru.ui_theme.color.LightMpeixPalette
 import kekmech.ru.ui_theme.color.MpeixPalette
 import kekmech.ru.ui_theme.typography.MpeixTypography
+import kekmech.ru.ui_theme.typography.rememberRobotoFontFamily
 
 /**
  * Simple MpeiX palette mapped into Material3 palette
@@ -79,18 +76,10 @@ public fun MpeixTheme(
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val typography = remember { MpeixTypography() }
-    val isInPreview = LocalInspectionMode.current
+    val fontFamily = rememberRobotoFontFamily()
+    val typography = remember(fontFamily) { MpeixTypography(fontFamily) }
 
-    if (!isInPreview) {
-        val systemUiController = rememberSystemUiController()
-        SideEffect {
-            systemUiController.setSystemBarsColor(
-                color = Color.Transparent,
-                darkIcons = !darkTheme,
-            )
-        }
-    }
+    SystemBarsEffect(darkTheme = darkTheme)
 
     CompositionLocalProvider(
         LocalMpeixPalette provides if (darkTheme) DarkMpeixPalette else LightMpeixPalette,
@@ -98,7 +87,7 @@ public fun MpeixTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = remember {
+            typography = remember(typography) {
                 Typography(
                     headlineLarge = typography.header1,
                     headlineMedium = typography.header2,

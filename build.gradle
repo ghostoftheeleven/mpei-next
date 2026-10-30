@@ -26,6 +26,7 @@ plugins {
     alias(mpeix.plugins.feature.impl) apply false
     alias(mpeix.plugins.lib.kotlin) apply false
     alias(mpeix.plugins.lib.kmp) apply false
+    alias(mpeix.plugins.lib.kmp.android) apply false
     alias(mpeix.plugins.lib.android) apply false
     alias(mpeix.plugins.util.kotlin) apply false
     alias(mpeix.plugins.util.android) apply false

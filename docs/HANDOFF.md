@@ -15,6 +15,14 @@
 - Эти модули пока **только добавлены**: Android-приложение по-прежнему на Retrofit, `java.time`, `SharedPreferences` и Fragment.
   Потребители переходят на них вместе с переводом своих модулей на KMP (M3 расписание, M4 заметки и настройки).
 - `mock_server` переведён на Ktor 3.3.3 (в debug-сборке сервер и клиент на одном classpath); в рантайме на устройстве не проверялся.
+- **M2 начат:** `ui_theme` теперь KMP с Android-таргетом (конвенция `mpeix.lib.kmp.android`): палитра, типографика,
+  `MpeixTheme` в `commonMain`, шрифты Roboto в `composeResources/font` (`rememberRobotoFontFamily()`), прозрачные системные
+  панели через `expect/actual`, превью в `androidMain`. `RobotoFontFamily` как обычная переменная остался в `androidMain`
+  для трёх Android-экранов. Остаётся: `ui_kit_*`, иконки, строки RU/EN, `ui_shimmer`, `ui_splash`.
+- **Побочный эффект Compose Multiplatform 1.9.3:** он жёстко (`strictly`) задаёт `androidx.compose.material3:1.4.0-beta01`,
+  поэтому всё Android-приложение теперь на этой бете вместо 1.3.2 из BOM. В 1.4 `material-icons-core` не подтягивается сам:
+  его нужно добавлять явно (`libs.compose.material.icons.core`) в модули, которые импортируют `androidx.compose.material.icons`.
+  Проверено на эмуляторе: онбординг, поиск, шрифт, цвета, сеть работают; экран расписания не открывали.
 
 ## Следующие шаги
 
@@ -31,6 +39,11 @@
 - **Проверка локально работает.** Проект лежит на пути без кириллицы (`C:\dev\MPEI Hub\mpei-next`).
   `./gradlew :app:assembleDebug` (около 3 минут с нуля, собирает debug APK) и `./gradlew :<модуль>:jvmTest` проходят.
   Android SDK: `C:\Users\rrust\AppData\Local\Android\Sdk` (платформа 36, build-tools 35.0.0, эмулятор и образы).
+- **Эмулятор:** AVD `Medium_Phone_API_37.0` и `Arca_API_30`. Запуск без окна:
+  `emulator.exe -avd Medium_Phone_API_37.0 -no-window -no-audio -no-snapshot -gpu swiftshader_indirect` (загрузка около
+  40 секунд), потом `adb install -r modules/app/build/outputs/apk/debug/MPEI-Hub-v0.5.2-debug.apk`, пакет `ru.mpei.hub.dev`,
+  скриншот `adb exec-out screencap -p > shot.png`. Холодный старт приложения около 10 секунд (сначала чёрный экран).
+  `adb input text` не умеет кириллицу.
 - **`local.properties`** лежит в `.gitignore`, в новой папке его нужно создать **с прямыми слэшами**:
   `sdk.dir=C:/Users/rrust/AppData/Local/Android/Sdk`. Одинарные обратные слэши в `.properties` это экранирование,
   путь превращается в мусор и сборка падает с `Invalid file path`.
