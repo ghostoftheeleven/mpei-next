@@ -13,12 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kekmech.ru.res_icons.R
+import kekmech.ru.ui_icons.resources.Res
+import kekmech.ru.ui_icons.resources.*
 
 /**
  * MpeiX Icons Library
@@ -27,43 +28,43 @@ import kekmech.ru.res_icons.R
 public object MpeixIcons {
 
     public val WhatshotBlack24: Painter
-        @Composable get() = painterResource(R.drawable.ic_whatshot_black_24)
+        @Composable get() = painterResource(Res.drawable.ic_whatshot_black_24)
 
     public val WhatshotOutline24: Painter
-        @Composable get() = painterResource(R.drawable.ic_whatshot_outline_24)
+        @Composable get() = painterResource(Res.drawable.ic_whatshot_outline_24)
 
     public val EventBlack24: Painter
-        @Composable get() = painterResource(R.drawable.ic_event_black_24)
+        @Composable get() = painterResource(Res.drawable.ic_event_black_24)
 
     public val EventOutline24: Painter
-        @Composable get() = painterResource(R.drawable.ic_event_outline_24)
+        @Composable get() = painterResource(Res.drawable.ic_event_outline_24)
 
     public val ExploreBlack24: Painter
-        @Composable get() = painterResource(R.drawable.ic_explore_black_24)
+        @Composable get() = painterResource(Res.drawable.ic_explore_black_24)
 
     public val ExploreOutline24: Painter
-        @Composable get() = painterResource(R.drawable.ic_explore_outline_24)
+        @Composable get() = painterResource(Res.drawable.ic_explore_outline_24)
 
     public val AccountBlack24: Painter
-        @Composable get() = painterResource(R.drawable.ic_account_black_24)
+        @Composable get() = painterResource(Res.drawable.ic_account_black_24)
 
     public val AccountOutline24: Painter
-        @Composable get() = painterResource(R.drawable.ic_account_outline_24)
+        @Composable get() = painterResource(Res.drawable.ic_account_outline_24)
 
     public val Close24: Painter
-        @Composable get() = painterResource(R.drawable.ic_close_24)
+        @Composable get() = painterResource(Res.drawable.ic_close_24)
 
     public val Search24: Painter
-        @Composable get() = painterResource(R.drawable.ic_search_24)
+        @Composable get() = painterResource(Res.drawable.ic_search_24)
 
     public val PersonOutline24: Painter
-        @Composable get() = painterResource(R.drawable.ic_person_outline_24)
+        @Composable get() = painterResource(Res.drawable.ic_person_outline_24)
 
     public val GroupsOutline24: Painter
-        @Composable get() = painterResource(R.drawable.ic_groups_outline_24)
+        @Composable get() = painterResource(Res.drawable.ic_groups_outline_24)
 
     public val ArrowBack24: Painter
-        @Composable get() = painterResource(R.drawable.ic_arrow_back_24)
+        @Composable get() = painterResource(Res.drawable.ic_arrow_back_24)
 }
 
 @Composable

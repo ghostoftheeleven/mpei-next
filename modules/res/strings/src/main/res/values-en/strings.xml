@@ -109,7 +109,7 @@
     <string name="common_error_no_internet_title">No Internet</string>
     <string name="common_error_no_internet_description">Check your internet connection and try loading the data again</string>
     <string name="common_error_bad_response_title">Error on the server</string>
-    <string name="common_error_bad_response_description">The server was unable to properly respond to the request and returned an error with code %s. If the problem persists for several minutes, report it to the developers.</string>
+    <string name="common_error_bad_response_description">The server was unable to properly respond to the request and returned an error with code %1$s. If the problem persists for several minutes, report it to the developers.</string>
     <string name="common_error_handshake_title">Encryption error</string>
     <string name="common_error_handshake_description">Make sure the time and date on your phone are correct. This is necessary to establish an encrypted connection. If this does not help, please report the problem to the developers immediately.</string>
     <string name="common_error_view_title">Display error</string>
@@ -129,9 +129,9 @@
     <string name="schedule_find_description">Enter the group number or teacher name and we will download the selected schedule to the device</string>
     <string name="schedule_find_hint">Group number or teacher name</string>
     <string name="schedule_find_button_continue">Continue</string>
-    <string name="schedule_find_error_loading">Failed to load schedule for %s</string>
+    <string name="schedule_find_error_loading">Failed to load schedule for %1$s</string>
 
-    <string name="schedule_semester_week">Academic week #%d</string>
+    <string name="schedule_semester_week">Academic week #%1$d</string>
     <string name="schedule_weekend_week">Non-academic week</string>
     <string name="schedule_loading_error">There was an error loading the schedule</string>
     <string name="schedule_item_window_header">"Window" between classes</string>
@@ -149,7 +149,7 @@
     <string name="schedule_fab_prev">Go to current week</string>
 
     <string name="dashboard_loading_error">An error occurred while loading data from the server</string>
-    <string name="dashboard_item_change_group">Group %s</string>
+    <string name="dashboard_item_change_group">Group %1$s</string>
     <string name="dashboard_item_click_to_change_group">Click to change schedule</string>
     <string name="dashboard_section_header_events">Upcoming events</string>
     <string name="dashboard_events_empty_state_title">Nothing interesting yet</string>
@@ -167,11 +167,11 @@
     <string name="dashboard_events_today">Today`s classes</string>
     <string name="dashboard_events_tomorrow">Tomorrow`s classes</string>
     <string name="dashboard_events_after_tomorrow">Classes the day after tomorrow </string>
-    <string name="dashboard_events_n_days">Classes in %s</string>
+    <string name="dashboard_events_n_days">Classes in %1$s</string>
     <string name="dashboard_banner_lunch_header">Apparently,\nit`s lunch break now</string>
     <string name="dashboard_banner_lunch_description">Search for food on the map</string>
     <string name="dashboard_search_field_text">Search in MPEI…</string>
-    <string name="dashboard_day_status_semester">The academic week #%d is in progress</string>
+    <string name="dashboard_day_status_semester">The academic week #%1$d is in progress</string>
     <string name="dashboard_day_status_not_semester">Non-academic week</string>
     <string name="dashboard_item_time_prediction_prefix">The class will start in</string>
 
@@ -194,7 +194,7 @@
     <plurals name="note_list_section_subtitle" tools:ignore="UnusedQuantity">
         <item quantity="one">This class has one note</item>
         <item quantity="two">This class has two notes</item>
-        <item quantity="other">This class has %d notes</item>
+        <item quantity="other">This class has %1$d notes</item>
     </plurals>
 
     <string name="note_edit_screen_title">Note</string>
@@ -242,7 +242,7 @@
     <string name="app_settings_header_developers">Developers</string>
     <string name="app_settings_section_lang">App language</string>
     <string name="app_settings_section_lang_description">Sometimes after changing the language, you need to restart the application</string>
-    <string name="app_settings_app_version">MPEI.Hub for Android v %s</string>
+    <string name="app_settings_app_version">MPEI.Hub for Android v %1$s</string>
     <string name="app_settings_repo_title">MPEI.Hub Repository</string>
     <string name="app_settings_original_repo_title">Original project (MpeiX)</string>
     <string name="about_project_title">About MPEI.Hub</string>
@@ -287,9 +287,9 @@
     <string name="search_schedule_details_classes_2_4">classes</string>
     <string name="search_schedule_details_classes_5_0">classes</string>
     <string name="search_schedule_details_this_week_description_empty">No classes this week</string>
-    <string name="search_schedule_details_this_week_description">%s this week</string>
+    <string name="search_schedule_details_this_week_description">%1$s this week</string>
     <string name="search_schedule_details_next_week_description_empty">no classes next week.</string>
-    <string name="search_schedule_details_next_week_description">%s next week.</string>
+    <string name="search_schedule_details_next_week_description">%1$s next week.</string>
     <string name="search_schedule_details_add_favorites">Add to favorites</string>
     <string name="search_schedule_details_remove_favorites">Remove from favorites</string>
     <string name="search_schedule_details_switch_schedule">Go to Schedule </string>

@@ -49,6 +49,15 @@ internal abstract class LibKmpAndroidConventionPlugin : Plugin<Project> {
         }
         extensions.configure<KotlinMultiplatformExtension> {
             explicitApi()
+            // the same opt-ins as the Android convention gives to the Compose modules
+            compilerOptions {
+                optIn.addAll(
+                    "androidx.compose.foundation.ExperimentalFoundationApi",
+                    "androidx.compose.foundation.layout.ExperimentalLayoutApi",
+                    "androidx.compose.material3.ExperimentalMaterial3Api",
+                    "androidx.compose.ui.ExperimentalComposeUiApi",
+                )
+            }
             androidTarget {
                 compilerOptions {
                     jvmTarget.set(JvmTarget.JVM_17)

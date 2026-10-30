@@ -1,6 +1,5 @@
 package kekmech.ru.ui_kit_switch
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -13,7 +12,7 @@ import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kekmech.ru.ui_theme.theme.MpeixTheme
 
@@ -71,10 +70,10 @@ public fun Switch(
     )
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL)
+@Preview
 @Composable
 private fun SwitchPreviewLight() {
-    MpeixTheme {
+    MpeixTheme(darkTheme = false) {
         Column(
             modifier = Modifier
                 .background(MpeixTheme.palette.background)
@@ -107,10 +106,10 @@ private fun SwitchPreviewLight() {
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
+@Preview
 @Composable
 private fun SwitchPreviewDark() {
-    MpeixTheme {
+    MpeixTheme(darkTheme = true) {
         Column(
             modifier = Modifier
                 .background(MpeixTheme.palette.background)

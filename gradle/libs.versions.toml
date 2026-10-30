@@ -155,6 +155,8 @@ compose-animation = { module = "androidx.compose.animation:animation" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
+# the same icons for the shared (Compose Multiplatform) code
+cmp-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version = "1.7.3" }
 compose-activity = { module = "androidx.activity:activity-compose", version = "1.12.4" }
 compose-ui-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version = "1.10.4" }
 
