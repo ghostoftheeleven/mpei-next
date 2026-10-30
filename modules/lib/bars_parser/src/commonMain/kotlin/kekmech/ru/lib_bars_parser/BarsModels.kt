@@ -173,6 +173,15 @@ data class BarsMark(
     val retakenDate: String?,
     /** What follows the number except the date: "ППА1 - 3 (не уч.)". */
     val note: String?,
+    /** The tag in the brackets of the date: "НД" in "3 (НД, 15.06.26)". */
+    val tag: String? = null,
+    /** "не зачтено" in "2/не зачтено". */
+    val verdict: String? = null,
+    /** The mark that BARS does not count any more: "Не учитывается: 5 (01.06.26)". */
+    val ignoredFrom: String? = null,
+    val ignoredDate: String? = null,
+    /** The repeated attempts of an attestation: "ППА1 - 2 (НД, 20.06.26) ППА2 - 3 (22.06.26)". */
+    val attempts: List<BarsAttempt> = emptyList(),
 ) {
     val isRetaken: Boolean get() = retakenFrom != null
 }
@@ -264,4 +273,17 @@ data class BarsMarksPart(
     /** "2025/2026, Весенний семестр" */
     val semesterName: String?,
     val disciplines: List<BarsDiscipline>,
+)
+
+/** One repeated attestation of a mark cell: "ППА1 - 2/не зачтено (НД, 20.06.26)". */
+data class BarsAttempt(
+    /** "ППА1" */
+    val label: String,
+    /** The value as written, "2". */
+    val rawValue: String,
+    val value: Float?,
+    val verdict: String?,
+    /** "НД" or "не уч." */
+    val tag: String?,
+    val date: String?,
 )

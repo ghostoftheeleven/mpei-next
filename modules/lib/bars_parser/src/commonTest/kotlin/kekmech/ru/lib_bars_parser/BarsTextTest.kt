@@ -45,6 +45,70 @@ class BarsTextTest {
     }
 
     @Test
+    fun `an attestation with the tags and the repeated attempts`() {
+        val mark = assertNotNull(parseBarsMark("3 (НД, 15.06.26) ППА1 - 2 (НД, 20.06.26) ППА2 - 3 (22.06.26)"))
+
+        assertEquals(3f, mark.value)
+        assertEquals("НД", mark.tag)
+        assertEquals("15.06.26", mark.date)
+        assertEquals("ППА1 - 2 (НД, 20.06.26) ППА2 - 3 (22.06.26)", mark.note)
+
+        assertEquals(2, mark.attempts.size)
+        val (first, second) = mark.attempts
+        assertEquals("ППА1", first.label)
+        assertEquals(2f, first.value)
+        assertEquals("НД", first.tag)
+        assertEquals("20.06.26", first.date)
+        assertEquals("ППА2", second.label)
+        assertEquals(3f, second.value)
+        assertNull(second.tag)
+        assertEquals("22.06.26", second.date)
+    }
+
+    @Test
+    fun `the date of an attempt is not the date of the mark`() {
+        val mark = assertNotNull(parseBarsMark("2 ППА1 - 3 (22.06.26)"))
+
+        assertNull(mark.date)
+        assertEquals("22.06.26", mark.attempts.single().date)
+    }
+
+    @Test
+    fun `a final mark with verdicts`() {
+        val mark = assertNotNull(parseBarsMark("2/не зачтено ППА1 - 3/зачтено (не уч.)"))
+
+        assertEquals(2f, mark.value)
+        assertEquals("не зачтено", mark.verdict)
+        val attempt = mark.attempts.single()
+        assertEquals("зачтено", attempt.verdict)
+        assertEquals(3f, attempt.value)
+        assertEquals("не уч.", attempt.tag)
+        assertNull(attempt.date)
+
+        val plain = assertNotNull(parseBarsMark("5/зачтено"))
+        assertEquals(5f, plain.value)
+        assertEquals("зачтено", plain.verdict)
+        assertNull(plain.note)
+    }
+
+    @Test
+    fun `a mark that is not counted any more`() {
+        val mark = assertNotNull(parseBarsMark("4 (06.06.26) Не учитывается: 5 (01.06.26)", "Пересдана: 0 (11.04.26)"))
+
+        assertEquals(4f, mark.value)
+        assertEquals("06.06.26", mark.date)
+        assertEquals("5", mark.ignoredFrom)
+        assertEquals("01.06.26", mark.ignoredDate)
+        assertNull(mark.note)
+        assertEquals("0", mark.retakenFrom)
+    }
+
+    @Test
+    fun `a score with a comma`() {
+        assertEquals(2.66f, parseBarsMark("2,66")?.value)
+    }
+
+    @Test
     fun `text without a number keeps its raw value`() {
         val mark = assertNotNull(parseBarsMark("зачтено (06.06.26)"))
 

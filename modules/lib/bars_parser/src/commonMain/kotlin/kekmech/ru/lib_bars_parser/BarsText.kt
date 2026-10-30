@@ -2,8 +2,16 @@ package kekmech.ru.lib_bars_parser
 
 private val WHITESPACE = Regex("\\s+")
 private val LEADING_NUMBER = Regex("^(\\d+(?:[.,]\\d+)?)")
-private val DATE_IN_BRACKETS = Regex("\\((\\d{2}\\.\\d{2}\\.\\d{2,4})\\)")
+private val DATE_ONLY = Regex("\\d{2}\\.\\d{2}\\.\\d{2,4}")
+// "(06.06.26)" or "(НД, 06.06.26)": a date, maybe with a tag before it
+private val DATE_IN_BRACKETS = Regex("\\((?:([^),]*),\\s*)?(\\d{2}\\.\\d{2}\\.\\d{2,4})\\)")
 private val RETAKE = Regex("Пересдана:\\s*(\\S+)\\s*\\((\\d{2}\\.\\d{2}\\.\\d{2,4})\\)")
+private val IGNORED = Regex("Не учитывается:\\s*(\\S+)\\s*\\((\\d{2}\\.\\d{2}\\.\\d{2,4})\\)")
+// The brackets of the mark itself: right behind the number
+private val MAIN_BRACKET = Regex("^\\s*" + DATE_IN_BRACKETS.pattern)
+private val VERDICT = Regex("^/(не зачтено|зачтено)")
+// "ППА1 - 3 (не уч.)", "ППА2 - 2/не зачтено (НД, 20.06.26)"
+private val ATTEMPT = Regex("(ППА\\d+)\\s*-\\s*([^\\s(/]+)(?:/(не зачтено|зачтено))?(?:\\s*\\(([^)]*)\\))?")
 private val UNITS = Regex("^(\\d+(?:[.,]\\d+)?)\\s*ЗЕ(.*)$")
 
 /** Collapses every kind of whitespace, non-breaking spaces included, into single spaces. */
@@ -21,22 +29,57 @@ fun parseBarsMark(mainText: String, retakeText: String? = null): BarsMark? {
 
     val numberMatch = LEADING_NUMBER.find(main)
     val value = numberMatch?.groupValues?.get(1)?.replace(',', '.')?.toFloatOrNull()
-    val date = DATE_IN_BRACKETS.find(main)?.groupValues?.get(1)
+    var rest = if (numberMatch != null) main.removePrefix(numberMatch.value) else main
 
-    var rest = main
-    if (numberMatch != null) rest = rest.removePrefix(numberMatch.value)
-    rest = rest.replaceFirst(DATE_IN_BRACKETS, "")
-    val note = normalizeBarsText(rest).ifEmpty { null }
+    // "5/зачтено": the verdict sits right behind the number
+    val verdict = VERDICT.find(rest)?.also { rest = rest.removePrefix(it.value) }?.groupValues?.get(1)
+
+    // The date of the mark itself is the brackets that follow the number; the dates of the attempts come later.
+    // Without a number ("зачтено (06.06.26)") the first brackets with a date are taken.
+    val bracket = if (value != null) {
+        MAIN_BRACKET.find(rest)
+    } else {
+        DATE_IN_BRACKETS.find(rest)
+    }
+    if (bracket != null) rest = rest.removeRange(bracket.range)
+
+    val ignored = IGNORED.find(rest)
+    if (ignored != null) rest = rest.removeRange(ignored.range)
+
+    val attempts = ATTEMPT.findAll(rest).map { attempt ->
+        val (tag, date) = splitTagAndDate(attempt.groupValues[4])
+        BarsAttempt(
+            label = attempt.groupValues[1],
+            rawValue = attempt.groupValues[2],
+            value = attempt.groupValues[2].replace(',', '.').toFloatOrNull(),
+            verdict = attempt.groupValues[3].ifEmpty { null },
+            tag = tag,
+            date = date,
+        )
+    }.toList()
 
     val retake = RETAKE.find(retakeLine)
     return BarsMark(
         raw = listOf(main, retakeLine).filter { it.isNotEmpty() }.joinToString(" "),
         value = value,
-        date = date,
+        date = bracket?.groupValues?.get(2),
         retakenFrom = retake?.groupValues?.get(1),
         retakenDate = retake?.groupValues?.get(2),
-        note = note,
+        note = normalizeBarsText(rest).ifEmpty { null },
+        tag = bracket?.groupValues?.get(1)?.trim()?.ifEmpty { null },
+        verdict = verdict,
+        ignoredFrom = ignored?.groupValues?.get(1),
+        ignoredDate = ignored?.groupValues?.get(2),
+        attempts = attempts,
     )
+}
+
+/** "НД, 20.06.26" -> "НД" to "20.06.26"; "не уч." -> "не уч." to null; "22.06.26" -> null to "22.06.26". */
+private fun splitTagAndDate(inner: String): Pair<String?, String?> {
+    val parts = inner.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+    val date = parts.lastOrNull()?.takeIf { DATE_ONLY.matches(it) }
+    val tag = (if (date != null) parts.dropLast(1) else parts).joinToString(", ").ifEmpty { null }
+    return tag to date
 }
 
 /** The first integer of a "15 (07.12.26-13.12.26)" cell, null if there is none. */
