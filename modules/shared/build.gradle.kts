@@ -23,6 +23,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":lib_bars_client"))
             implementation(project(":feature_bars_shared"))
+            implementation(project(":ui_theme"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)

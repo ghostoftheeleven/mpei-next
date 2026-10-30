@@ -1,7 +1,7 @@
 package kekmech.ru.shared
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
+import kekmech.ru.ui_theme.theme.MpeixTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,7 +20,7 @@ import kekmech.ru.shared.bars.BarsScreen
  */
 @Composable
 public fun App(bars: BarsApi) {
-    MaterialTheme {
+    MpeixTheme {
         Surface(Modifier.fillMaxSize()) {
             val scope = rememberCoroutineScope()
             val controller = remember(bars) { BarsController(bars, scope) }
