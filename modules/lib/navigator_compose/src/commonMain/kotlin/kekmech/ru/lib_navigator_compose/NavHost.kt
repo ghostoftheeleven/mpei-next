@@ -24,6 +24,10 @@ import kekmech.ru.lib_navigator.Navigator
 public val LocalNavigator: ProvidableCompositionLocal<Navigator> =
     compositionLocalOf { error("No Navigator: draw the screens inside NavHost") }
 
+/** The entry of the screen that is being drawn; its `scope` holds the objects of the screen (the ELM store). */
+public val LocalBackStackEntry: ProvidableCompositionLocal<BackStackEntry> =
+    compositionLocalOf { error("No BackStackEntry: draw the screens inside NavHost") }
+
 /**
  * Draws the top entry of the back stack of [navigator]. A new screen slides in from the right, a closed one slides
  * out to the right. The state saved with `rememberSaveable` survives the screens above, and is dropped when the entry
@@ -53,7 +57,9 @@ public fun NavHost(
             label = "NavHost",
         ) { entry ->
             saveableStateHolder.SaveableStateProvider(entry.id) {
-                content(entry)
+                CompositionLocalProvider(LocalBackStackEntry provides entry) {
+                    content(entry)
+                }
             }
         }
     }

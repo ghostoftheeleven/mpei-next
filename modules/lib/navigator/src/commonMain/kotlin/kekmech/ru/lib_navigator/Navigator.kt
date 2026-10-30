@@ -14,7 +14,11 @@ public interface Screen
 public class BackStackEntry internal constructor(
     public val id: Long,
     public val screen: Screen,
-)
+) {
+
+    /** The objects of this screen that live while the entry is in the stack. */
+    public val scope: EntryScope = EntryScope()
+}
 
 /**
  * The back stack. The stack is never empty: the root stays until [newRoot] replaces it.
@@ -80,6 +84,7 @@ public class Navigator(root: Screen) {
         if (new == old) return false
         stack.value = new
         old.asReversed().filter { it !in new }.forEach { removed ->
+            removed.scope.clear()
             removedListeners.toList().forEach { it(removed) }
         }
         return true

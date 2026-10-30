@@ -6,19 +6,20 @@
 ## Состояние
 
 - **M0** конвейер iOS `.ipa` — готов. **M6** БАРС на iOS — готов в коде, **на устройстве не проверен** (Sideloadly + вход с настоящим 2FA).
-- **M1 (фундамент KMP)** почти готов. Новые KMP-модули (конвенция `mpeix.lib.kmp`, цели jvm + iosArm64 + iosSimulatorArm64):
+- **M1 (фундамент KMP)** готов, кроме системной кнопки «назад» и свайпа назад на iOS. Новые KMP-модули (конвенция `mpeix.lib.kmp`, цели jvm + iosArm64 + iosSimulatorArm64):
   `ext_kotlin`, `ext_koin`, `lib_coroutines`, `lib_elm`, `ext_datetime` (kotlinx-datetime), `lib_settings` (KeyValueStore,
   NSUserDefaults на iOS, адаптер SharedPreferences в `ext_shared_preferences`), `lib_http` (клиент Ktor + каталог
   `BackendServiceUrl`), `lib_mpei_api` (API расписания ts.mpei.ru), `lib_navigator` (стек экранов с командами Router) и
-  `lib_navigator_compose` (`NavHost`).
+  `lib_navigator_compose` (`NavHost`, `LocalBackStackEntry`) и `lib_elm_ui` (`rememberElmStore`, `ElmContent`: ELM-стор
+  экрана лежит в `BackStackEntry.scope` и останавливается, когда запись уходит из стека).
 - Эти модули пока **только добавлены**: Android-приложение по-прежнему на Retrofit, `java.time`, `SharedPreferences` и Fragment.
   Потребители переходят на них вместе с переводом своих модулей на KMP (M3 расписание, M4 заметки и настройки).
 - `mock_server` переведён на Ktor 3.3.3 (в debug-сборке сервер и клиент на одном classpath); в рантайме на устройстве не проверялся.
 
 ## Следующие шаги
 
-1. **M1, остаток:** `lib_elm_compose` для KMP (ELM-стор живёт в записи `Navigator`, освобождается через
-   `addOnRemovedListener`), системная кнопка «назад» и свайп назад на iOS.
+1. **M1, остаток:** системная кнопка «назад» на Android и свайп назад на iOS для `NavHost`. Старый `lib_elm_compose`
+   (ViewModel, Bundle) остаётся для Fragment-экранов Android и уйдёт, когда они станут Compose-экранами на `lib_elm_ui`.
 2. **M2** дизайн-система (`ui_theme`, `ui_kit_*`, иконки, шрифты, строки RU/EN → Compose Resources).
 3. **M3** расписание: самый большой этап, там же заменяются Retrofit → `MpeiScheduleApi`, `java.time` → `ext_datetime`,
    `SharedPreferences` → `lib_settings`, Fragment/XML → Compose.
