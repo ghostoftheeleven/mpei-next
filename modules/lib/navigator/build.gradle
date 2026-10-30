@@ -1,0 +1,17 @@
+// The back stack of the screens for the code that is shared between Android and iOS. It has the same commands as
+// the Router of the Android app (forward, replace, new root, pop until), but no Fragment and no UI: the screens are
+// drawn by :lib_navigator_compose.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
+}
