@@ -1,0 +1,43 @@
+name: Appetize Upload
+
+# Uploads the simulator build made by the "iOS Simulator" workflow to Appetize (a cloud iOS simulator in the browser).
+# Started by hand with the id of a run of "iOS Simulator". The API token is the repository secret APPETIZE_API_TOKEN.
+# The app stays private (it opens only for the signed-in owner of the Appetize account).
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Id of the run of the iOS Simulator workflow that has the artifact ios-simulator-app"
+        required: true
+
+jobs:
+  upload:
+    name: Upload the .app to Appetize
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the .app
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-simulator-app
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: out
+
+      - name: Upload to Appetize
+        env:
+          APPETIZE_API_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
+        run: |
+          ls -la out
+          curl --fail-with-body -sS -X POST https://api.appetize.io/v1/apps \
+            -H "X-API-KEY: ${APPETIZE_API_TOKEN}" \
+            -F "file=@out/MPEI-Hub-simulator.zip" \
+            -F "platform=ios" \
+            -F "note=MPEI Hub ${GITHUB_SHA}" \
+            -o response.json
+          cat response.json
+          KEY=$(jq -r .publicKey response.json)
+          echo "Appetize public key: ${KEY}"
+          echo "Open: https://appetize.io/app/${KEY}"
+          echo "### Appetize" >> "$GITHUB_STEP_SUMMARY"
+          echo "Public key: \`${KEY}\`  https://appetize.io/app/${KEY}" >> "$GITHUB_STEP_SUMMARY"
