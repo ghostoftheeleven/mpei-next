@@ -31,11 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import kekmech.ru.ui_theme.theme.MpeixTheme
-import kekmech.ru.ui_theme.typography.RobotoFontFamily
+import kekmech.ru.ui_theme.typography.rememberRobotoFontFamily
 import kotlinx.coroutines.delay
 
-private val LegacyH4 = TextStyle(
-    fontFamily = RobotoFontFamily,
+@Composable
+private fun legacyH4(): TextStyle = TextStyle(
+    fontFamily = rememberRobotoFontFamily(),
     lineHeight = 22.sp,
     fontSize = 16.sp,
     fontWeight = FontWeight.Normal,
@@ -64,7 +65,7 @@ public fun LegacyButton(
         ) {
             Text(
                 text = remember { text.uppercase() },
-                style = LegacyH4,
+                style = legacyH4(),
                 modifier = Modifier.alpha(if (loading) 0f else 1f),
             )
             if (loading) {
