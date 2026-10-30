@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.accept
 import io.ktor.client.request.forms.FormDataContent
@@ -33,11 +34,11 @@ import kotlinx.coroutines.sync.withLock
 
 private const val MAX_REDIRECTS = 8
 
-private fun HttpClientConfig<*>.configureBars() {
+private fun HttpClientConfig<*>.configureBars(cookies: CookiesStorage) {
     // The redirects are followed by hand in BarsClient.send(): Ktor does not follow the one that answers a POST
     followRedirects = false
     expectSuccess = false
-    install(HttpCookies)
+    install(HttpCookies) { storage = cookies }
     install(UserAgent) { agent = "MPEI-Hub" }
 }
 private val STUDENT_ID_IN_URL = Regex("studentID=([0-9a-fA-F-]{36})", RegexOption.IGNORE_CASE)
@@ -50,19 +51,26 @@ private val STUDENT_ID_IN_URL = Regex("studentID=([0-9a-fA-F-]{36})", RegexOptio
  * itself gives, the redirects are followed by hand (a POST that is answered with a redirect is read with a GET),
  * the code is requested the way the page's script requests it. The password is used for one request and is not kept.
  *
- * The session lives as long as the client object: the cookies are kept in memory only.
- * The calls are serialized, one at a time.
+ * The session survives the end of the app if [sessionStore] keeps it: after a sign-in the cookies and the student are
+ * saved, [restoreSession] brings them back, [logout] and a session that BARS has closed erase them. Only the cookies
+ * are kept, never the login and the password. The calls are serialized, one at a time.
  *
  * @param engine the engine of the HTTP client; null takes the one of the platform (Darwin on iOS, CIO on JVM)
+ * @param sessionStore where the session is kept between the launches; the default forgets it with the process
  */
 class BarsClient(
     private val endpoints: BarsEndpoints = BarsEndpoints(),
     private val engine: HttpClientEngine? = null,
+    private val sessionStore: BarsSessionStore = InMemoryBarsSessionStore(),
 ) {
 
     private val mutex = Mutex()
+    private var jar = newJar()
     private var http: HttpClient = createHttp()
     private var pending: BarsTwoFactorPage? = null
+
+    /** True while the cookies belong to a signed-in session, so a change of them has to be saved. */
+    private var signedIn = false
 
     /** The student whose pages are asked for, known after the sign-in or the first page. */
     var studentId: String? = null
@@ -81,6 +89,8 @@ class BarsClient(
         sendCode: Boolean = true,
     ): BarsLoginResult = mutex.withLock {
         resetSession()
+        // The session that was stored is not the one that is about to be opened
+        sessionStore.clear()
 
         val loginPage = send(HttpMethod.Get, endpoints.login)
         if (BarsHtmlParser.detectPage(loginPage.body) != BarsPageKind.LOGIN) {
@@ -134,7 +144,7 @@ class BarsClient(
                 rememberStudent(response)
                 BarsHtmlParser.parseMarksPage(response.body)
             }
-            else -> throw unexpectedPage(response)
+            else -> throw failure(response)
         }
     }
 
@@ -150,7 +160,7 @@ class BarsClient(
         }
         when (BarsHtmlParser.detectPage(response.body)) {
             BarsPageKind.SUMMARY -> BarsHtmlParser.parseSummaryPage(response.body)
-            else -> throw unexpectedPage(response)
+            else -> throw failure(response)
         }
     }
 
@@ -191,11 +201,27 @@ class BarsClient(
         return response
     }
 
-    /** Ends the session on the server and forgets the cookies. */
+    /**
+     * Takes the session that [sessionStore] kept (the cookies and the student) as the session of this client.
+     * Nothing is asked of BARS: the session may be dead by now, the first call that needs it says so with
+     * [BarsSessionExpiredException]. Returns false if the store has nothing.
+     */
+    suspend fun restoreSession(): Boolean = mutex.withLock {
+        val stored = sessionStore.load() ?: return@withLock false
+        resetSession()
+        jar = newJar(stored.cookies)
+        http = createHttp()
+        studentId = stored.studentId
+        signedIn = true
+        true
+    }
+
+    /** Ends the session on the server and forgets the cookies, the stored ones too. */
     suspend fun logout() {
         mutex.withLock {
             runCatching { send(HttpMethod.Get, endpoints.logout) }
             resetSession()
+            sessionStore.clear()
         }
     }
 
@@ -231,6 +257,8 @@ class BarsClient(
                 pending = null
                 val students = BarsHtmlParser.parseStudentList(body)
                 rememberStudent(response)
+                signedIn = true
+                saveSession()
                 BarsLoginResult.LoggedIn(studentId, students)
             }
             BarsPageKind.UNKNOWN -> {
@@ -238,7 +266,7 @@ class BarsClient(
                 if (formError != null && response.status < SERVER_ERROR) {
                     BarsLoginResult.Rejected(formError, canRetryCode = pending != null && afterCode)
                 } else {
-                    throw unexpectedPage(response)
+                    throw failure(response)
                 }
             }
         }
@@ -268,8 +296,18 @@ class BarsClient(
         return value
     }
 
-    private fun unexpectedPage(response: BarsResponse): Exception = when (BarsHtmlParser.detectPage(response.body)) {
-        BarsPageKind.LOGIN, BarsPageKind.TWO_FACTOR -> BarsSessionExpiredException()
+    /**
+     * What to throw for a page that is not the one that was asked for. The sign-in page in its place means that BARS
+     * has closed the session: the stored one is dead too, so it is erased.
+     */
+    private suspend fun failure(response: BarsResponse): Exception = when (BarsHtmlParser.detectPage(response.body)) {
+        BarsPageKind.LOGIN, BarsPageKind.TWO_FACTOR -> {
+            if (signedIn) {
+                signedIn = false
+                sessionStore.clear()
+            }
+            BarsSessionExpiredException()
+        }
         BarsPageKind.STUDENT_LIST -> BarsNetworkException("The account has several students, pass studentId")
         else -> BarsNetworkException("Unexpected page (HTTP ${response.status}) at ${response.url.substringBefore('?')}")
     }
@@ -279,13 +317,25 @@ class BarsClient(
 
     private fun resetSession() {
         http.close()
+        jar = newJar()
         http = createHttp()
         pending = null
         studentId = null
+        signedIn = false
+    }
+
+    private fun newJar(cookies: List<BarsCookie> = emptyList()): BarsCookieJar =
+        BarsCookieJar(cookies).also { created ->
+            // BARS renews the cookies while the session is used, the renewed ones are the ones to keep
+            created.onChanged = { if (signedIn) saveSession() }
+        }
+
+    private suspend fun saveSession() {
+        sessionStore.save(BarsStoredSession(cookies = jar.snapshot(), studentId = studentId))
     }
 
     private fun createHttp(): HttpClient =
-        engine?.let { HttpClient(it) { configureBars() } } ?: HttpClient { configureBars() }
+        engine?.let { HttpClient(it) { configureBars(jar) } } ?: HttpClient { configureBars(jar) }
 
     private class BarsResponse(val status: Int, val body: String, val url: String)
 

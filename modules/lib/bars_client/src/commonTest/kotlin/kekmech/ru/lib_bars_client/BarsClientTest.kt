@@ -17,6 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -194,6 +195,89 @@ class BarsClientTest {
         assertNull(client.studentId)
         assertFailsWith<BarsSessionExpiredException> { client.loadMarksPage() }
         assertNull(log.last().headers[HttpHeaders.Cookie])
+    }
+
+    @Test
+    fun `a session that was opened is saved without the password`() = runTest {
+        val store = InMemoryBarsSessionStore()
+        val saving = BarsClient(engine = fakeBars(log), sessionStore = store)
+        saving.login("user", "pass", sendCode = false)
+        assertNull(store.load())
+
+        saving.submitCode("123456")
+
+        val saved = assertNotNull(store.load())
+        assertEquals(STUDENT, saved.studentId)
+        assertEquals(setOf("sess", "auth"), saved.cookies.map { it.name }.toSet())
+        val text = BarsSessionCodec.encode(saved)
+        assertTrue("pass" !in text && "123456" !in text, text)
+    }
+
+    @Test
+    fun `a new client takes the saved session and goes on without signing in`() = runTest {
+        val store = InMemoryBarsSessionStore()
+        BarsClient(engine = fakeBars(mutableListOf()), sessionStore = store).run {
+            login("user", "pass", sendCode = false)
+            submitCode("123456")
+        }
+
+        val restored = BarsClient(engine = fakeBars(log), sessionStore = store)
+        assertTrue(restored.restoreSession())
+        assertEquals(STUDENT, restored.studentId)
+
+        val page = restored.loadMarksPage()
+
+        assertEquals(listOf("Химия"), page.disciplines.map { it.name })
+        assertTrue("auth=1" in log.last().headers[HttpHeaders.Cookie].orEmpty())
+        // nothing but the page was asked for
+        assertEquals(1, log.size)
+    }
+
+    @Test
+    fun `nothing to restore from an empty store`() = runTest {
+        assertEquals(false, client.restoreSession())
+        assertNull(client.studentId)
+    }
+
+    @Test
+    fun `a saved session that BARS has closed is erased`() = runTest {
+        val store = InMemoryBarsSessionStore()
+        store.save(
+            BarsStoredSession(
+                cookies = listOf(BarsCookie("sess", "1", "bars.mpei.ru", "/", null, secure = false, httpOnly = true)),
+                studentId = STUDENT,
+            ),
+        )
+        val restored = BarsClient(engine = fakeBars(log), sessionStore = store)
+        assertTrue(restored.restoreSession())
+
+        assertFailsWith<BarsSessionExpiredException> { restored.loadMarksPage() }
+
+        assertNull(store.load())
+    }
+
+    @Test
+    fun `logout erases the saved session`() = runTest {
+        val store = InMemoryBarsSessionStore()
+        val signed = BarsClient(engine = fakeBars(log), sessionStore = store)
+        signed.login("user", "pass", sendCode = false)
+        signed.submitCode("123456")
+        assertNotNull(store.load())
+
+        signed.logout()
+
+        assertNull(store.load())
+    }
+
+    @Test
+    fun `a new sign-in does not leave the old saved session behind`() = runTest {
+        val store = InMemoryBarsSessionStore()
+        store.save(BarsStoredSession(emptyList(), STUDENT))
+        val signing = BarsClient(engine = fakeBars(log), sessionStore = store)
+
+        assertIs<BarsLoginResult.Rejected>(signing.login("user", "bad"))
+
+        assertNull(store.load())
     }
 
     @Test
