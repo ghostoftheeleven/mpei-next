@@ -1,0 +1,16 @@
+// The date and time layer for the code that is shared between Android and iOS (kotlinx-datetime instead of java.time).
+// The modules that still use java.time move here when they become multiplatform.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.datetime)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
+}
