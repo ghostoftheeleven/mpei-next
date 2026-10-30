@@ -62,7 +62,7 @@ class BarsClient(
     private val endpoints: BarsEndpoints = BarsEndpoints(),
     private val engine: HttpClientEngine? = null,
     private val sessionStore: BarsSessionStore = InMemoryBarsSessionStore(),
-) {
+) : BarsApi {
 
     private val mutex = Mutex()
     private var jar = newJar()
@@ -73,7 +73,7 @@ class BarsClient(
     private var signedIn = false
 
     /** The student whose pages are asked for, known after the sign-in or the first page. */
-    var studentId: String? = null
+    override var studentId: String? = null
         private set
 
     /**
@@ -82,11 +82,11 @@ class BarsClient(
      * @param sendCode makes the request for a code that the page makes when it opens; set false if the code comes from
      * an authenticator app and nothing has to be sent
      */
-    suspend fun login(
+    override suspend fun login(
         login: String,
         password: String,
-        rememberMe: Boolean = false,
-        sendCode: Boolean = true,
+        rememberMe: Boolean,
+        sendCode: Boolean,
     ): BarsLoginResult = mutex.withLock {
         resetSession()
         // The session that was stored is not the one that is about to be opened
@@ -111,13 +111,13 @@ class BarsClient(
      * Asks BARS to send a code with [provider] (the default one of the page if null). The page does the same with its
      * "send again" buttons.
      */
-    suspend fun sendCode(provider: BarsTwoFactorProvider? = null): BarsSendCodeResult = mutex.withLock {
+    override suspend fun sendCode(provider: BarsTwoFactorProvider?): BarsSendCodeResult = mutex.withLock {
         val page = pending ?: error("There is no sign-in waiting for a code, call login() first")
         requestCode(page, provider ?: page.default)
     }
 
     /** Posts the code of the second factor. */
-    suspend fun submitCode(code: String): BarsLoginResult = mutex.withLock {
+    override suspend fun submitCode(code: String): BarsLoginResult = mutex.withLock {
         val page = pending ?: error("There is no sign-in waiting for a code, call login() first")
         val form = page.form ?: throw BarsNetworkException("The second factor page has no form to post the code with")
         require(code.isNotBlank()) { "The code is empty" }
@@ -132,7 +132,7 @@ class BarsClient(
      * The marks page of the student ([studentId] or the one of the sign-in).
      * @throws BarsSessionExpiredException if BARS wants the sign-in again
      */
-    suspend fun loadMarksPage(studentId: String? = null): BarsMarksPage = mutex.withLock {
+    override suspend fun loadMarksPage(studentId: String?): BarsMarksPage = mutex.withLock {
         val id = studentId ?: this.studentId
         val response = send(
             HttpMethod.Get,
@@ -152,7 +152,7 @@ class BarsClient(
      * The summary of the student: the page itself for the semester that BARS opens, or its table for [semesterId]
      * (a value of the semester filter, see `BarsSummaryPage.semesters`).
      */
-    suspend fun loadSummary(semesterId: String? = null, studentId: String? = null): BarsSummaryPage = mutex.withLock {
+    override suspend fun loadSummary(semesterId: String?, studentId: String?): BarsSummaryPage = mutex.withLock {
         val response = if (semesterId == null) {
             send(HttpMethod.Get, endpoints.summary, query = listOf("studentID" to knownStudent(studentId)))
         } else {
@@ -169,7 +169,7 @@ class BarsClient(
      * the same request that the marks page makes when the semester is changed.
      * @throws BarsSessionExpiredException if BARS wants the sign-in again
      */
-    suspend fun loadSemesterMarks(semesterId: String, studentId: String? = null): BarsMarksPart = mutex.withLock {
+    override suspend fun loadSemesterMarks(semesterId: String, studentId: String?): BarsMarksPart = mutex.withLock {
         BarsHtmlParser.parseMarksPart(sendSemesterPart(endpoints.marksPart, semesterId, studentId).body)
     }
 
@@ -177,7 +177,7 @@ class BarsClient(
      * The rating of a semester: what the marks page asks for when the semester of the rating is changed. Null if BARS
      * answers without a rating.
      */
-    suspend fun loadRating(semesterId: String, studentId: String? = null): BarsRating? = mutex.withLock {
+    override suspend fun loadRating(semesterId: String, studentId: String?): BarsRating? = mutex.withLock {
         BarsHtmlParser.parseRating(sendSemesterPart(endpoints.headerPart, semesterId, studentId).body)
     }
 
@@ -206,7 +206,7 @@ class BarsClient(
      * Nothing is asked of BARS: the session may be dead by now, the first call that needs it says so with
      * [BarsSessionExpiredException]. Returns false if the store has nothing.
      */
-    suspend fun restoreSession(): Boolean = mutex.withLock {
+    override suspend fun restoreSession(): Boolean = mutex.withLock {
         val stored = sessionStore.load() ?: return@withLock false
         resetSession()
         jar = newJar(stored.cookies)
@@ -217,7 +217,7 @@ class BarsClient(
     }
 
     /** Ends the session on the server and forgets the cookies, the stored ones too. */
-    suspend fun logout() {
+    override suspend fun logout() {
         mutex.withLock {
             runCatching { send(HttpMethod.Get, endpoints.logout) }
             resetSession()
