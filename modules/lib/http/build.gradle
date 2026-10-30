@@ -1,0 +1,29 @@
+// The HTTP client for the code that is shared between Android and iOS (Ktor) and the catalog of the backend URLs.
+// The engine is OkHttp on Android (JVM) and Darwin (NSURLSession) on iOS.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.ktor.client.core)
+            api(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.serialization.kser)
+            implementation(libs.ktor.client.logging)
+        }
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+}

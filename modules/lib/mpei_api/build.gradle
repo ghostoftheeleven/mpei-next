@@ -1,0 +1,19 @@
+// The client of the official timetable API of MPEI (ts.mpei.ru) for the code that is shared between Android and iOS.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(project(":lib_http"))
+            api(libs.kotlinx.datetime)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+}

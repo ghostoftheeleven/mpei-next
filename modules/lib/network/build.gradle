@@ -14,6 +14,9 @@ dependencies {
 
     implementation(project(":lib_app_info"))
 
+    // BackendServiceUrl, AppEnvironment and ServiceUrlResolver live there (they are shared with iOS)
+    api(project(":lib_http"))
+
     implementation(project(":ext_json"))
     implementation(project(":ext_koin"))
     implementation(project(":ext_okhttp"))

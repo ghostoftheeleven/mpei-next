@@ -39,8 +39,9 @@ composeBom = "2025.08.00"
 composeMultiplatform = "1.9.3"
 
 # MockServer
-ktor = "2.3.0"
-# Ktor client for the Kotlin Multiplatform code (the line above is the mock server). 3.3.3 is built with Kotlin 2.2.21
+ktor = "3.3.3"
+# Ktor client for the Kotlin Multiplatform code. Keep it equal to the line above: the debug app has both the mock server
+# and the client on the classpath, and they share ktor-http and ktor-utils. 3.3.3 is built with Kotlin 2.2.21
 ktorClient = "3.3.3"
 work = "2.9.0"
 
@@ -137,6 +138,10 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorCli
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorClient" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClient" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorClient" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClient" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClient" }
+ktor-client-serialization-kser = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorClient" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorClient" }
 
 # Jetpack Compose
 ## Compose
