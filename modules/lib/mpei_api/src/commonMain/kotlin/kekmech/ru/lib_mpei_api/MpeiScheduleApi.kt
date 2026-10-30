@@ -62,3 +62,15 @@ public fun formatMpeiDate(date: LocalDate): String =
         date.dayOfMonth.toString().padStart(2, '0')
 
 private const val YEAR_DIGITS = 4
+
+/** `2026.10.30` back to a date; `null` if the text is not a date of the API. */
+public fun parseMpeiDate(text: String): LocalDate? {
+    val parts = text.trim().split('.')
+    if (parts.size != DATE_PARTS) return null
+    val year = parts[0].toIntOrNull() ?: return null
+    val month = parts[1].toIntOrNull() ?: return null
+    val day = parts[2].toIntOrNull() ?: return null
+    return runCatching { LocalDate(year, month, day) }.getOrNull()
+}
+
+private const val DATE_PARTS = 3

@@ -1,0 +1,21 @@
+// The schedule for the code that is shared between Android and iOS: the models (kotlinx-datetime instead of java.time),
+// the mapping of the answers of the MPEI API and the service that searches and loads a week. No UI: the screens are
+// Compose code in :shared. The Android app still has its own copy (feature_schedule_impl) until M3 moves it here.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(project(":lib_mpei_api"))
+            api(project(":ext_datetime"))
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+}

@@ -34,7 +34,7 @@ jobs:
 
       # Multiplatform foundation (M1 of the iOS plan): the same modules are compiled for iOS in the iOS workflow
       - name: KMP foundation tests
-        run: ./gradlew :ext_kotlin:jvmTest :ext_koin:jvmTest :lib_coroutines:jvmTest :lib_elm:jvmTest :ext_datetime:jvmTest :lib_settings:jvmTest :lib_http:jvmTest :lib_mpei_api:jvmTest :lib_navigator:jvmTest :lib_navigator_compose:compileKotlinJvm :lib_elm_ui:jvmTest
+        run: ./gradlew :ext_kotlin:jvmTest :ext_koin:jvmTest :lib_coroutines:jvmTest :lib_elm:jvmTest :ext_datetime:jvmTest :lib_settings:jvmTest :lib_http:jvmTest :lib_mpei_api:jvmTest :lib_navigator:jvmTest :lib_navigator_compose:compileKotlinJvm :lib_elm_ui:jvmTest :feature_schedule_shared:jvmTest
 
       - name: Build with Gradle
         run: ./gradlew :app:assembleDebug
