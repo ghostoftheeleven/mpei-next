@@ -101,7 +101,7 @@ internal class NavigatorTest {
     }
 
     @Test
-    fun `listener gets every removed entry, the top one first`() {
+    fun `listener gets every removed entry and the top one first`() {
         navigator.push(Page("a"))
         navigator.push(Page("b"))
         val removed = mutableListOf<String>()
