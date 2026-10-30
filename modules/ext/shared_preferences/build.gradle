@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     compileOnly(androidJar)
+    api(project(":lib_settings"))
 }

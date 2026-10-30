@@ -1,0 +1,13 @@
+// A small key-value store for the settings of the app, shared between Android and iOS. The Android side adapts
+// SharedPreferences (see :ext_shared_preferences, the files stay the same), the iOS side is NSUserDefaults.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+}
+
+kotlin {
+    sourceSets {
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
+}
