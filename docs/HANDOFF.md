@@ -23,7 +23,9 @@
   `ScheduleService` (поиск и неделя через `MpeiScheduleApi`), `ScheduleCache` (выбранное расписание и последние 12 недель
   в `KeyValueStore`, JSON) и `ScheduleController` (состояния `Search` / `Week`, офлайн-копия при ошибке сети). 32 теста на JVM
   (в тестах контроллера `MockEngine` отвечает на реальном диспетчере, поэтому ждём через `settle`, а не `advanceUntilIdle`).
-  Не сделано: экран расписания в `:shared` (Compose, iOS), подключение к `App`, `KeyValueStore` для iOS в `MainViewController`,
+  Экран расписания (`ScheduleScreen`: поиск, неделя, офлайн-пометка) в `:shared`, `App` с нижними вкладками «Расписание» / «БАРС»,
+  `MainViewController` собирает Ktor-клиент, `ScheduleService` и `ScheduleCache` на `NSUserDefaults`. На iOS не запускалось: только
+  `compileCommonMainKotlinMetadata`/`compileIosMainKotlinMetadata` локально и CI. Не сделано: онбординг, избранное,
   Room KMP вместо `KeyValueStore`-кэша (если понадобится), перевод Android-потребителей на эти классы.
 - **Побочный эффект Compose Multiplatform 1.9.3:** он жёстко (`strictly`) задаёт `androidx.compose.material3:1.4.0-beta01`,
   поэтому всё Android-приложение теперь на этой бете вместо 1.3.2 из BOM. В 1.4 `material-icons-core` не подтягивается сам:
