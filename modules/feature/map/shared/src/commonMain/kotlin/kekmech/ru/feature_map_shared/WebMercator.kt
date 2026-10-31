@@ -17,6 +17,7 @@ public const val TILE_SIZE: Int = 256
 /** The highest latitude that Web Mercator can draw. */
 private const val MAX_LATITUDE = 85.05112878
 
+private const val MAX_TILE_LEVEL = 30
 private const val DEGREES_IN_HALF_TURN = 180.0
 private const val DEGREES_IN_TURN = 360.0
 
@@ -55,11 +56,18 @@ public object WebMercator {
 
     /**
      * The tiles that cover a screen of [widthPx] by [heightPx] pixels whose center is [center] at [zoom]. The zoom is
-     * fractional: the tiles are of the level `floor(zoom)` and are scaled. The tiles to the left and to the right of the
+     * fractional: the tiles are of the level `floor(zoom)` (not higher than [maxLevel], the highest level the tile source
+     * has) and are scaled. The tiles to the left and to the right of the
      * world are the same tiles again (the world repeats), the ones above and below it do not exist.
      */
-    public fun visibleTiles(center: Location, zoom: Double, widthPx: Float, heightPx: Float): List<PlacedTile> {
-        val level = floor(zoom).toInt().coerceAtLeast(0)
+    public fun visibleTiles(
+        center: Location,
+        zoom: Double,
+        widthPx: Float,
+        heightPx: Float,
+        maxLevel: Int = MAX_TILE_LEVEL,
+    ): List<PlacedTile> {
+        val level = floor(zoom).toInt().coerceIn(0, maxLevel)
         val scale = 2.0.pow(zoom - level)
         val centerPoint = project(center, level.toDouble())
         val left = centerPoint.x - widthPx / (2 * scale)

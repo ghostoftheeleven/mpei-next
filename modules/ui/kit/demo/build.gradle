@@ -41,6 +41,10 @@ dependencies {
     implementation(project(":ui_theme"))
     implementation(project(":ui_icons"))
     implementation(project(":ui_shimmer"))
+    implementation(project(":ui_map"))
+    implementation(project(":feature_map_shared"))
+    implementation(project(":lib_http"))
+    implementation(project(":lib_settings"))
     implementation(project(":ui_kit_lists"))
     implementation(project(":ui_kit_topappbar"))
     implementation(project(":ui_kit_navigationbar"))
@@ -56,4 +60,15 @@ dependencies {
     implementation(libs.compose.material.icons.core)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
+}
+
+// activity-compose 1.12 (it is what navigation3 of the demo needs) brings navigationevent 1.0.2, which Compose UI 1.9 of the
+// BOM does not know: the demo crashed on the start. With 1.11 (as in the main app) the plain screens work, MapDemoActivity
+// is one of them; the navigation3 screens of MainActivity do not (they need the newer activity). Known, not fixed here.
+configurations.configureEach {
+    resolutionStrategy.force(
+        "androidx.activity:activity:1.11.0",
+        "androidx.activity:activity-ktx:1.11.0",
+        "androidx.activity:activity-compose:1.11.0",
+    )
 }
