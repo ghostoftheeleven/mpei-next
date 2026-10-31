@@ -14,6 +14,7 @@ dependencies {
     testImplementation(libs.kotest.assertions)
     testImplementation(libs.kotest.property)
     testImplementation(libs.kotest.runner)
+    testImplementation(libs.ktor.client.mock)
 
     implementation(libs.bundles.compose)
     implementation(libs.compose.material3)
@@ -42,6 +43,8 @@ dependencies {
     implementation(project(":feature_notes_api"))
     implementation(project(":feature_onboarding_api"))
     implementation(project(":feature_schedule_api"))
+    implementation(project(":feature_schedule_shared"))
+    implementation(project(":lib_mpei_api"))
 
     implementation(project(":lib_adapter"))
     implementation(project(":lib_analytics_api"))

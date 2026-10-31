@@ -11,6 +11,10 @@ import kekmech.ru.lib_network.AppEnvironment
 import kekmech.ru.lib_network.ServiceUrlResolver
 import kekmech.ru.lib_network.device_id.DeviceIdProvider
 import kekmech.ru.lib_network.device_id.DeviceLocaleProvider
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import kekmech.ru.lib_http.ClientIdentity
+import kekmech.ru.lib_http.createHttpClient
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import okhttp3.Interceptor
@@ -38,6 +42,7 @@ public val LibraryNetworkModule: Module = module {
     singleOf(::provideRetrofitBuilder) bind Retrofit.Builder::class
     singleOf(::provideJson) bind Json::class
     single { provideOkHttpClient(getAll(), getOrNull()) } bind OkHttpClient::class
+    single { provideHttpClient(get()) }
 
     single {
         RequiredHeadersInterceptor(
@@ -89,3 +94,20 @@ private fun provideRetrofitBuilder(
 ) = Retrofit.Builder()
     .client(okHttpClient)
     .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+
+/**
+ * The Ktor client of the code shared with iOS. It sends through the same OkHttpClient as Retrofit, so the interceptors
+ * (the required headers, the check of the connection, the log) apply to it too; the headers of [ClientIdentity] are
+ * replaced by the interceptor.
+ */
+private fun provideHttpClient(okHttpClient: OkHttpClient): HttpClient =
+    createHttpClient(
+        identity = ClientIdentity(
+            userAgent = "mpeixAndroidClient/1.0",
+            deviceId = "",
+            deviceOs = "Android",
+            deviceLocale = "",
+            appVersion = "",
+        ),
+        engine = OkHttp.create { preconfigured = okHttpClient },
+    )

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package kekmech.ru.feature_schedule_impl.di
 
 import kekmech.ru.ext_koin.bindIntoList
@@ -10,9 +12,9 @@ import kekmech.ru.feature_schedule_api.domain.usecase.HasSelectedScheduleUseCase
 import kekmech.ru.feature_schedule_impl.SchedulePreheatLifecycleObserver
 import kekmech.ru.feature_schedule_impl.data.datasource.ScheduleCacheWrapper
 import kekmech.ru.feature_schedule_impl.data.datasource.SelectedScheduleSource
-import kekmech.ru.feature_schedule_impl.data.network.MpeiDirectScheduleService
+import kekmech.ru.feature_schedule_impl.data.network.KtorScheduleService
 import kekmech.ru.feature_schedule_impl.data.network.ScheduleService
-import kekmech.ru.feature_schedule_impl.data.network.mpei.MpeiScheduleService
+import kekmech.ru.lib_mpei_api.MpeiScheduleApi
 import kekmech.ru.feature_schedule_impl.data.repository.ScheduleRepositoryImpl
 import kekmech.ru.feature_schedule_impl.data.repository.ScheduleSearchRepositoryImpl
 import kekmech.ru.feature_schedule_impl.domain.usecase.HasSelectedScheduleUseCaseImpl
@@ -37,14 +39,13 @@ import kekmech.ru.feature_schedule_impl.presentation.screen.main.elm.ScheduleSto
 import kekmech.ru.feature_schedule_impl.presentation.widget.ScheduleGlanceWidgetUpdater
 import kekmech.ru.lib_analytics_api.SelectedScheduleAnalyticsProvider
 import kekmech.ru.lib_app_lifecycle.AppLifecycleObserver
-import kekmech.ru.lib_network.buildApi
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.binds
 import org.koin.dsl.module
-import retrofit2.Retrofit
+import kotlin.time.ExperimentalTime
 
 val FeatureScheduleModule = module {
     factoryOf(::ScheduleFeatureApiImpl) bind ScheduleFeatureApi::class
@@ -56,10 +57,10 @@ val FeatureScheduleModule = module {
     factoryOf(::ScheduleDependencies)
     single { ScheduleGlanceWidgetUpdater(androidContext()) }
 
-    factory { get<Retrofit.Builder>().buildApi<MpeiScheduleService>() }
+    single { MpeiScheduleApi(client = get()) }
     single<ScheduleService> {
-        MpeiDirectScheduleService(
-            mpeiService = get(),
+        KtorScheduleService(
+            shared = kekmech.ru.feature_schedule_shared.ScheduleService(api = get()),
         )
     }
     singleOf(::ScheduleRepositoryImpl) binds arrayOf(

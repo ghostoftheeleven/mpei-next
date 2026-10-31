@@ -98,4 +98,17 @@ internal class ScheduleServiceTest {
             service(search = "[]").getWeek(ScheduleType.GROUP, "нет такой")
         }
     }
+
+    @Test
+    fun `the students of a group are not in the search results`() = runTest {
+        val answer = """[
+            {"id":9,"label":"А-01-22","description":"Группа","type":"group"},
+            {"id":10,"label":"Иванов Иван","description":"А-01-22","type":"student"},
+            {"id":11,"label":"Петров Пётр","description":"Кафедра","type":"person"}
+        ]"""
+
+        val results = service(search = answer).search("А-01-22")
+
+        assertEquals(listOf("А-01-22", "Петров Пётр"), results.map { it.name })
+    }
 }

@@ -1,13 +1,13 @@
-@file:OptIn(ExperimentalTime::class)
-
 package kekmech.ru.feature_schedule_shared
 
 import kekmech.ru.ext_datetime.moscowDate
 import kekmech.ru.ext_datetime.startOfWeek
 import kekmech.ru.lib_mpei_api.MpeiScheduleApi
-import kotlin.time.Clock
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 /** There is no group or teacher with this name in the database of MPEI. */
@@ -15,20 +15,25 @@ public class ScheduleNotFoundException(name: String) : Exception("Schedule not f
 
 /**
  * Searches for the schedules and loads a week of one, through the official API of MPEI. The ids that the search has
- * found are remembered, so a week of a schedule is one request. Call it from one thread (the main one).
+ * found are remembered, so a week of a schedule is one request. It can be called from any thread.
  */
+@OptIn(ExperimentalTime::class)
 public class ScheduleService(
     private val api: MpeiScheduleApi,
     private val clock: Clock = Clock.System,
 ) {
 
     private val idCache = mutableMapOf<String, Long>()
+    private val idCacheLock = Mutex()
 
     /** @param type `null` searches both the groups and the teachers. */
     public suspend fun search(query: String, type: ScheduleType? = null): List<SearchResult> {
-        val results = api.search(term = query, type = type?.pathName)
-        for (result in results) {
-            idCache[cacheKey(result.label)] = result.id
+        // the answer has the students of a group too (type "student"): they have no schedule of their own here
+        val results = api.search(term = query, type = type?.pathName).filter { it.type in SEARCHABLE_TYPES }
+        idCacheLock.withLock {
+            for (result in results) {
+                idCache[cacheKey(result.label)] = result.id
+            }
         }
         return results.map(MpeiScheduleMapper::mapSearchResult)
     }
@@ -46,14 +51,18 @@ public class ScheduleService(
 
     private suspend fun idOf(type: ScheduleType, name: String): Long {
         val key = cacheKey(name)
-        idCache[key]?.let { return it }
+        idCacheLock.withLock { idCache[key] }?.let { return it }
         val found = api.search(term = name, type = type.pathName)
         val match = found.firstOrNull { it.label.equals(name.trim(), ignoreCase = true) }
             ?: found.firstOrNull()
             ?: throw ScheduleNotFoundException(name)
-        idCache[key] = match.id
+        idCacheLock.withLock { idCache[key] = match.id }
         return match.id
     }
 
     private fun cacheKey(name: String): String = name.trim().lowercase()
+
+    private companion object {
+        val SEARCHABLE_TYPES = setOf("group", "person")
+    }
 }
