@@ -293,10 +293,10 @@ private val MONTHS = listOf(
     "июля", "августа", "сентября", "октября", "ноября", "декабря",
 )
 
-private fun dayTitle(date: LocalDate): String =
+internal fun dayTitle(date: LocalDate): String =
     "${DAY_NAMES[date.dayOfWeek.ordinal]}, ${date.dayOfMonth} ${MONTHS[date.monthNumber - 1]}"
 
-private fun formatTime(time: LocalTime): String =
+internal fun formatTime(time: LocalTime): String =
     "${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}"
 
 private fun typeTitle(type: ClassesType, raw: String?): String = when (type) {

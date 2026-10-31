@@ -29,12 +29,14 @@ import kekmech.ru.feature_schedule_shared.ScheduleService
 import kekmech.ru.feature_schedule_shared.ScheduleUiState
 import kekmech.ru.lib_bars_client.BarsApi
 import kekmech.ru.shared.bars.BarsScreen
+import kekmech.ru.shared.notes.NotesScreen
 import kekmech.ru.shared.schedule.ScheduleScreen
 import kekmech.ru.ui_theme.theme.MpeixTheme
 import kotlin.time.ExperimentalTime
 
 private const val TAB_SCHEDULE = 0
-private const val TAB_BARS = 1
+private const val TAB_NOTES = 1
+private const val TAB_BARS = 2
 
 /**
  * The root of the shared UI. Two sections were moved from the Android app so far: the schedule (milestone 3 of the
@@ -79,6 +81,12 @@ public fun App(
                             label = { Text("Расписание") },
                         )
                         NavigationBarItem(
+                            selected = tab == TAB_NOTES,
+                            onClick = { tab = TAB_NOTES },
+                            icon = {},
+                            label = { Text("Заметки") },
+                        )
+                        NavigationBarItem(
                             selected = tab == TAB_BARS,
                             onClick = { tab = TAB_BARS },
                             icon = {},
@@ -90,6 +98,7 @@ public fun App(
                 Box(Modifier.fillMaxSize().padding(padding)) {
                     when (tab) {
                         TAB_SCHEDULE -> ScheduleScreen(schedule, notes)
+                        TAB_NOTES -> NotesScreen(notes, notesSchedule)
                         else -> BarsScreen(barsController)
                     }
                 }
