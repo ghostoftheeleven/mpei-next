@@ -7,7 +7,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 import kekmech.ru.feature_map_shared.TileId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -107,4 +111,21 @@ public class TileLoader(
         }
         revision++
     }
+}
+
+private const val TILE_REQUEST_TIMEOUT_MILLIS = 15_000L
+
+/**
+ * The client for the tile servers (OpenStreetMap, Esri). It is not the client of the app on purpose: the requests of the
+ * app carry the id of the device and the version of the app, and these must not go to third parties. The servers get
+ * only the [userAgent] (the policy of OpenStreetMap asks for one that names the app).
+ */
+public fun tileHttpClient(userAgent: String): HttpClient = HttpClient {
+    expectSuccess = true
+    install(HttpTimeout) {
+        requestTimeoutMillis = TILE_REQUEST_TIMEOUT_MILLIS
+        connectTimeoutMillis = TILE_REQUEST_TIMEOUT_MILLIS
+        socketTimeoutMillis = TILE_REQUEST_TIMEOUT_MILLIS
+    }
+    defaultRequest { header(HttpHeaders.UserAgent, userAgent) }
 }

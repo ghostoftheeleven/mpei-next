@@ -70,6 +70,23 @@ internal class MapMarkersTest {
     }
 
     @Test
+    fun `the copy that comes with the app is used when there is nothing else`() = runTest {
+        online = false
+        val engine = MockEngine { respond("", HttpStatusCode.ServiceUnavailable) }
+        val repository = MapMarkersRepository(
+            client = createHttpClient(ClientIdentity("test/1.0", "device", "iOS", "ru", "0.5.2"), engine),
+            store = store,
+            baseUrl = { "https://example.org/map/" },
+            bundled = { answer },
+        )
+
+        val loaded = repository.load()
+
+        assertEquals(true, loaded.fromCache)
+        assertEquals(3, loaded.markers.size)
+    }
+
+    @Test
     fun `the filter looks at the tab and at the name the address and the tag`() = runTest {
         val markers = repository().load().markers
 

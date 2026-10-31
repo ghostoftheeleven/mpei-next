@@ -1,7 +1,7 @@
 package kekmech.ru.feature_map_impl.launcher
 
 import kekmech.ru.feature_map_api.MapFeatureLauncher
-import kekmech.ru.feature_map_impl.presentation.screen.main.MapFragment
+import kekmech.ru.feature_map_impl.presentation.MapFragment
 
 internal class MapFeatureLauncherImpl(
     private val deeplinkDelegate: DeeplinkDelegate

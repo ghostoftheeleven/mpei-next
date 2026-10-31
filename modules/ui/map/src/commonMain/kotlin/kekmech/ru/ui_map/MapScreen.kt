@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -33,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kekmech.ru.feature_map_shared.APPEARANCE_HYBRID
 import kekmech.ru.feature_map_shared.APPEARANCE_SCHEME
+import kekmech.ru.feature_map_shared.DEFAULT_ZOOM
 import kekmech.ru.feature_map_shared.MapController
 import kekmech.ru.feature_map_shared.MapMarker
 import kekmech.ru.feature_map_shared.MapTabs
@@ -42,14 +45,24 @@ private const val LIST_HEIGHT_DP = 220
 
 /** The map of the campus: the search and the tabs on top, the map in the middle, the list of the places below. */
 @Composable
-public fun MapScreen(controller: MapController, tileLoader: TileLoader) {
+public fun MapScreen(
+    controller: MapController,
+    tileLoader: TileLoader,
+    modifier: Modifier = Modifier,
+    insets: WindowInsets = WindowInsets.safeContent,
+    onEvent: (MapScreenEvent) -> Unit = {},
+) {
     val state by controller.state.collectAsState()
     val mapState = remember { MapState() }
+    // the camera goes where the controller asks: a tap in the list, a link, the tap on the tab of the map
+    LaunchedEffect(state.focus) {
+        state.focus?.let { mapState.camera = mapState.camera.lookingAt(it.location, DEFAULT_ZOOM) }
+    }
     LaunchedEffect(controller) { controller.start() }
     val appearance = MapAppearance.fromCode(state.appearance)
     val visible = state.visible
 
-    Column(Modifier.fillMaxSize().safeContentPadding()) {
+    Column(modifier.fillMaxSize().windowInsetsPadding(insets)) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -63,9 +76,9 @@ public fun MapScreen(controller: MapController, tileLoader: TileLoader) {
                 modifier = Modifier.weight(1f),
             )
             TextButton(onClick = {
-                controller.setAppearance(
-                    if (appearance == MapAppearance.SCHEME) APPEARANCE_HYBRID else APPEARANCE_SCHEME,
-                )
+                val next = if (appearance == MapAppearance.SCHEME) APPEARANCE_HYBRID else APPEARANCE_SCHEME
+                controller.setAppearance(next)
+                onEvent(MapScreenEvent.AppearanceChanged(next))
             }) { Text(if (appearance == MapAppearance.SCHEME) "Спутник" else "Схема") }
         }
         LazyRow(
@@ -75,7 +88,10 @@ public fun MapScreen(controller: MapController, tileLoader: TileLoader) {
             items(MapTabs) { tab ->
                 FilterChip(
                     selected = state.query.isBlank() && state.tab == tab,
-                    onClick = { controller.selectTab(tab) },
+                    onClick = {
+                        controller.selectTab(tab)
+                        onEvent(MapScreenEvent.TabSelected(tab))
+                    },
                     label = { Text(tab.title()) },
                 )
             }
@@ -98,7 +114,10 @@ public fun MapScreen(controller: MapController, tileLoader: TileLoader) {
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(state.error.orEmpty(), color = MaterialTheme.colorScheme.error)
-                    Button(onClick = controller::reload) { Text("Повторить") }
+                    Button(onClick = {
+                        controller.reload()
+                        onEvent(MapScreenEvent.Reload)
+                    }) { Text("Повторить") }
                 }
                 state.offline -> Text(
                     "Нет сети, места из сохранённой копии",
@@ -111,8 +130,8 @@ public fun MapScreen(controller: MapController, tileLoader: TileLoader) {
             places = visible,
             selected = state.selected,
             onClick = { place ->
-                controller.select(place)
-                mapState.camera = mapState.camera.lookingAt(place.location)
+                controller.select(place, focus = true)
+                onEvent(MapScreenEvent.PlaceSelected(place))
             },
         )
     }
@@ -149,4 +168,12 @@ private fun MarkerType.title(): String = when (this) {
     MarkerType.HOSTEL -> "Общежития"
     MarkerType.STRUCTURE -> "Кафедры"
     MarkerType.OTHER, MarkerType.UNDEFINED -> "Прочее"
+}
+
+/** What the student did on the map screen; the app can count it (analytics). */
+public sealed interface MapScreenEvent {
+    public data class TabSelected(val tab: MarkerType) : MapScreenEvent
+    public data class PlaceSelected(val place: MapMarker) : MapScreenEvent
+    public data class AppearanceChanged(val appearance: String) : MapScreenEvent
+    public data object Reload : MapScreenEvent
 }

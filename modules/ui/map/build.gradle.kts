@@ -24,3 +24,8 @@ kotlin {
         }
     }
 }
+
+compose.resources {
+    packageOfResClass = "kekmech.ru.ui_map.resources"
+    generateResClass = always
+}

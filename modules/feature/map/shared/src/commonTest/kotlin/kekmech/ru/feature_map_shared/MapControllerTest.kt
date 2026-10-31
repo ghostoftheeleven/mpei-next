@@ -146,6 +146,86 @@ internal class MapControllerTest {
         assertEquals(APPEARANCE_HYBRID, controller(this).state.value.appearance)
     }
 
+    @Test
+    fun `a place from a link is shown with its tab and the camera`() = runTest {
+        val controller = controller(this)
+        controller.start()
+        settle(controller)
+
+        controller.openPlace("4")
+
+        val state = controller.state.value
+        assertEquals(MarkerType.HOSTEL, state.tab)
+        assertEquals("4", state.selected?.uid)
+        assertEquals(Location(55.75, 37.72), state.focus?.location)
+    }
+
+    @Test
+    fun `a place from a link that came before the markers is shown when they are loaded`() = runTest {
+        val controller = controller(this)
+
+        controller.openPlace("1")
+        controller.start()
+        settle(controller)
+
+        assertEquals(MarkerType.BUILDING, controller.state.value.tab)
+        assertEquals("1", controller.state.value.selected?.uid)
+    }
+
+    @Test
+    fun `a tab from a link is shown and an unknown tab is ignored`() = runTest {
+        val controller = controller(this)
+
+        controller.openTab(MarkerType.HOSTEL)
+        assertEquals(MarkerType.HOSTEL, controller.state.value.tab)
+
+        controller.openTab(MarkerType.UNDEFINED)
+        assertEquals(MarkerType.HOSTEL, controller.state.value.tab)
+    }
+
+    @Test
+    fun `a tap in the list moves the camera and a tap on the map does not`() = runTest {
+        val controller = controller(this)
+        controller.start()
+        settle(controller)
+        val marker = controller.state.value.visible.first()
+
+        controller.select(marker)
+        assertNull(controller.state.value.focus)
+
+        controller.select(marker, focus = true)
+        val first = controller.state.value.focus
+        controller.select(marker, focus = true)
+
+        assertEquals(marker.location, first?.location)
+        // the same place asked again is a new request
+        assertEquals(true, controller.state.value.focus != first)
+    }
+
+    @Test
+    fun `the reset takes the selection off and goes back to the campus`() = runTest {
+        val controller = controller(this)
+        controller.start()
+        settle(controller)
+        controller.select(controller.state.value.visible.first(), focus = true)
+
+        controller.resetView()
+
+        assertNull(controller.state.value.selected)
+        assertEquals(CampusCenter, controller.state.value.focus?.location)
+    }
+
+    @Test
+    fun `the look of the map that was changed elsewhere is read again`() = runTest {
+        val controller = controller(this)
+        assertEquals(APPEARANCE_SCHEME, controller.state.value.appearance)
+
+        KeyValueAppearanceStorage(store).set(APPEARANCE_HYBRID)
+        controller.syncAppearance()
+
+        assertEquals(APPEARANCE_HYBRID, controller.state.value.appearance)
+    }
+
     private companion object {
         const val SETTLE_ATTEMPTS = 500
         const val SETTLE_STEP_MILLIS = 10L

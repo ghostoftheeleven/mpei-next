@@ -18,6 +18,7 @@ import kekmech.ru.lib_settings.InMemoryKeyValueStore
 import kekmech.ru.ui_map.MapScreen
 import kekmech.ru.ui_map.TileLoader
 import kekmech.ru.ui_map.tileFetcher
+import kekmech.ru.ui_map.tileHttpClient
 
 /** The screen of the campus map as it is in the iOS app, to look at it on a device without the rest of the app. */
 class MapDemoActivity : ComponentActivity() {
@@ -38,6 +39,6 @@ private fun MapDemo() {
     val client = remember { createHttpClient(ClientIdentity("MPEI-Hub-demo/1.0", "demo", "Android", "ru", "1.0")) }
     val store = remember { InMemoryKeyValueStore() }
     val controller = remember { MapController(MapMarkersRepository(client, store), store, scope) }
-    val loader = remember { TileLoader(scope, client.tileFetcher()) }
+    val loader = remember { TileLoader(scope, tileHttpClient("MPEI-Hub-demo/1.0").tileFetcher()) }
     MapScreen(controller, loader)
 }

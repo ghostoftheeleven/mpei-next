@@ -22,11 +22,15 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntOffset
@@ -52,8 +56,6 @@ public class MapState(initial: MapCamera = MapCamera()) {
 }
 
 private const val TAP_RADIUS_DP = 28
-private const val MARKER_RADIUS_DP = 8
-private const val SELECTED_RADIUS_DP = 12
 private const val MAX_PARENT_LEVELS = 4
 private const val LN_2 = 0.6931471805599453
 private val BACKGROUND = Color(0xFFE5E3DF)
@@ -77,6 +79,7 @@ public fun MpeiMap(
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
     val textMeasurer = rememberTextMeasurer()
+    val icons = rememberMarkerIcons()
     Box(modifier.clipToBounds().background(BACKGROUND).onSizeChanged { size = it }) {
         Canvas(
             Modifier
@@ -110,7 +113,7 @@ public fun MpeiMap(
                                 markerAt(
                                     markers = markers,
                                     x = point.x,
-                                    y = point.y,
+                                    y = point.y + PIN_SIZE_DP / 2 * density,
                                     camera = state.camera,
                                     widthPx = size.width.toFloat(),
                                     heightPx = size.height.toFloat(),
@@ -125,7 +128,7 @@ public fun MpeiMap(
             for (layer in appearance.layers) {
                 drawLayer(layer, camera, tileLoader)
             }
-            drawMarkers(markers, selected, camera, textMeasurer)
+            drawMarkers(markers, selected, camera, icons, textMeasurer)
         }
         Text(
             text = appearance.attribution,
@@ -184,54 +187,102 @@ private fun DrawScope.drawCoarserTile(layer: TileLayer, tile: PlacedTile, loader
     }
 }
 
+private const val PIN_SIZE_DP = 32f
+private const val SELECTED_PIN_SCALE = 1.25f
+private const val DECOR_SIZE_DP = 16f
+private const val LETTER_SIZE_SP = 12
+private const val LABEL_TEXT_SP = 13
+private const val LABEL_ADDRESS_SP = 11
+
 private fun DrawScope.drawMarkers(
     markers: List<MapMarker>,
     selected: MapMarker?,
     camera: MapCamera,
+    icons: MarkerIcons,
     textMeasurer: TextMeasurer,
 ) {
-    val margin = SELECTED_RADIUS_DP * density
-    for (marker in markers) {
-        if (marker.uid == selected?.uid) continue
-        val (x, y) = WebMercator.toScreen(marker.location, camera.center, camera.zoom, size.width, size.height)
-        if (x < -margin || y < -margin || x > size.width + margin || y > size.height + margin) continue
-        drawMarker(Offset(x, y), marker.type.color(), MARKER_RADIUS_DP * density)
+    val margin = PIN_SIZE_DP * SELECTED_PIN_SCALE * density
+    // the markers that are lower on the screen are drawn later, so they lie over the ones above them
+    val onScreen = markers
+        .filter { it.uid != selected?.uid }
+        .map { it to WebMercator.toScreen(it.location, camera.center, camera.zoom, size.width, size.height) }
+        .filter { (_, point) ->
+            point.first > -margin && point.first < size.width + margin &&
+                point.second > -margin && point.second < size.height + 2 * margin
+        }
+        .sortedBy { (_, point) -> point.second }
+    for ((marker, point) in onScreen) {
+        drawPin(marker, Offset(point.first, point.second), 1f, icons, textMeasurer)
     }
     if (selected != null) {
         val (x, y) = WebMercator.toScreen(selected.location, camera.center, camera.zoom, size.width, size.height)
-        val center = Offset(x, y)
-        drawMarker(center, selected.type.color(), SELECTED_RADIUS_DP * density)
-        drawLabel(selected.name, center, textMeasurer)
+        drawPin(selected, Offset(x, y), SELECTED_PIN_SCALE, icons, textMeasurer)
+        drawLabel(selected, Offset(x, y - PIN_SIZE_DP * SELECTED_PIN_SCALE * density), textMeasurer)
     }
 }
 
-private fun DrawScope.drawMarker(center: Offset, color: Color, radius: Float) {
-    drawCircle(Color.White, radius = radius + 2 * density, center = center)
-    drawCircle(color, radius = radius, center = center)
-    drawCircle(Color.Black.copy(alpha = 0.25f), radius = radius, center = center, style = Stroke(width = density))
+/** The marker is a 32 dp picture whose bottom middle is the place. */
+private fun DrawScope.drawPin(
+    marker: MapMarker,
+    place: Offset,
+    scale: Float,
+    icons: MarkerIcons,
+    textMeasurer: TextMeasurer,
+) {
+    val side = PIN_SIZE_DP * scale * density
+    val left = place.x - side / 2
+    val top = place.y - side
+    val own = icons.named(marker.icon)
+    if (own != null) {
+        translate(left, top) { with(own) { draw(Size(side, side)) } }
+        return
+    }
+    val unit = side / PIN_VIEWPORT
+    withTransform({
+        translate(left, top)
+        scale(unit, unit, Offset.Zero)
+    }) {
+        drawPath(PinPath, marker.type.pinColor())
+    }
+    val letter = marker.icon.orEmpty()
+    val decor = icons.decor(marker.type)
+    when {
+        marker.type == MarkerType.BUILDING && letter.length == 1 -> {
+            val layout = textMeasurer.measure(
+                letter,
+                TextStyle(color = Color.White, fontSize = (LETTER_SIZE_SP * scale).sp, fontWeight = FontWeight.Medium),
+            )
+            drawText(
+                layout,
+                topLeft = Offset(place.x - layout.size.width / 2f, top + side * 0.5f - layout.size.height / 2f + 2 * density),
+            )
+        }
+        decor != null -> {
+            val decorSide = DECOR_SIZE_DP * scale * density
+            translate(place.x - decorSide / 2, top + side * 0.5f - decorSide / 2 - 2 * density) {
+                with(decor) { draw(Size(decorSide, decorSide), colorFilter = ColorFilter.tint(Color.White)) }
+            }
+        }
+    }
 }
 
-private fun DrawScope.drawLabel(text: String, center: Offset, textMeasurer: TextMeasurer) {
-    val layout = textMeasurer.measure(text, androidx.compose.ui.text.TextStyle(color = Color.Black, fontSize = 13.sp))
-    val padding = 6 * density
-    val width = layout.size.width + 2 * padding
-    val height = layout.size.height + 2 * padding
-    val left = (center.x - width / 2).coerceIn(4 * density, (size.width - width - 4 * density).coerceAtLeast(4 * density))
-    val top = center.y - (SELECTED_RADIUS_DP + 6) * density - height
+/** The name of the chosen place and its address, above the marker. */
+private fun DrawScope.drawLabel(marker: MapMarker, above: Offset, textMeasurer: TextMeasurer) {
+    val name = textMeasurer.measure(marker.name, TextStyle(color = Color.Black, fontSize = LABEL_TEXT_SP.sp, fontWeight = FontWeight.Medium))
+    val address = marker.address.takeIf { it.isNotBlank() }?.let {
+        textMeasurer.measure(it, TextStyle(color = Color.DarkGray, fontSize = LABEL_ADDRESS_SP.sp))
+    }
+    val padding = 8 * density
+    val width = maxOf(name.size.width, address?.size?.width ?: 0) + 2 * padding
+    val height = name.size.height + (address?.size?.height ?: 0) + 2 * padding
+    val left = (above.x - width / 2).coerceIn(4 * density, (size.width - width - 4 * density).coerceAtLeast(4 * density))
+    val top = above.y - 4 * density - height
     drawRoundRect(
         color = Color.White,
         topLeft = Offset(left, top),
         size = Size(width, height),
         cornerRadius = CornerRadius(8 * density),
     )
-    drawText(layout, topLeft = Offset(left + padding, top + padding))
+    drawText(name, topLeft = Offset(left + padding, top + padding))
+    address?.let { drawText(it, topLeft = Offset(left + padding, top + padding + name.size.height)) }
 }
-
-private fun MarkerType.color(): Color = when (this) {
-    MarkerType.FOOD -> Color(0xFFF57C00)
-    MarkerType.BUILDING -> Color(0xFF1E5BB8)
-    MarkerType.HOSTEL -> Color(0xFF7B1FA2)
-    MarkerType.STRUCTURE -> Color(0xFF2E7D32)
-    MarkerType.OTHER, MarkerType.UNDEFINED -> Color(0xFF616161)
-}
-

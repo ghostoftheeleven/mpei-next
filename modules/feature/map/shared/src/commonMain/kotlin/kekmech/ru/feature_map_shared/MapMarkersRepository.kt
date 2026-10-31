@@ -24,6 +24,8 @@ public class MapMarkersRepository(
     private val store: KeyValueStore,
     private val baseUrl: () -> String = { ServiceUrlResolver.resolve(BackendServiceUrl.MAP) },
     private val json: Json = Json { ignoreUnknownKeys = true; coerceInputValues = true },
+    /** The copy of markers.json that comes with the app, for the first start without the network; `null` if there is none. */
+    private val bundled: () -> String? = { null },
 ) {
 
     /** @throws Exception the error of the network, when there is no copy on the device either */
@@ -37,9 +39,14 @@ public class MapMarkersRepository(
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-            val cached = cached() ?: throw e
+            val cached = cached() ?: bundledMarkers() ?: throw e
             LoadedMarkers(cached, fromCache = true)
         }
+
+    private fun bundledMarkers(): List<MapMarker>? {
+        val text = runCatching(bundled).getOrNull() ?: return null
+        return runCatching { json.decodeFromString(serializer, text) }.getOrNull()
+    }
 
     /** The copy on the device, or `null` if there is none. */
     public fun cached(): List<MapMarker>? {
