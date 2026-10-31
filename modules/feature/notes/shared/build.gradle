@@ -1,0 +1,21 @@
+// The notes for the classes for the code that is shared between Android and iOS: the model, the store on KeyValueStore and
+// the controller of the screen. The Android app keeps its notes in Room (feature_notes_impl) until it moves here.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(project(":ext_datetime"))
+            api(project(":lib_settings"))
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+}

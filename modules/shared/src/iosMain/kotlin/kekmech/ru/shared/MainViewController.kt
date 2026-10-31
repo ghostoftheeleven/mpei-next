@@ -4,6 +4,7 @@ package kekmech.ru.shared
 
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.ComposeUIViewController
+import kekmech.ru.feature_notes_shared.NotesStore
 import kekmech.ru.feature_schedule_shared.FavoriteSchedules
 import kekmech.ru.feature_schedule_shared.ScheduleCache
 import kekmech.ru.feature_schedule_shared.ScheduleService
@@ -32,7 +33,8 @@ public fun MainViewController(): UIViewController = ComposeUIViewController {
     val scheduleService = remember { ScheduleService(MpeiScheduleApi(createHttpClient(clientIdentity()))) }
     val scheduleCache = remember { ScheduleCache(store) }
     val favorites = remember { FavoriteSchedules(store) }
-    App(bars, scheduleService, scheduleCache, favorites)
+    val notesStore = remember { NotesStore(store) }
+    App(bars, scheduleService, scheduleCache, favorites, notesStore)
 }
 
 private fun clientIdentity(): ClientIdentity {
