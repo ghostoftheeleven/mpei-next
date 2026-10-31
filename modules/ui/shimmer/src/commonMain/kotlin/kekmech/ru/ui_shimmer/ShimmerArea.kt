@@ -3,6 +3,7 @@ package kekmech.ru.ui_shimmer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import kotlin.math.PI
 import kotlin.math.acos
 import kotlin.math.cos
 import kotlin.math.pow
@@ -74,11 +75,11 @@ internal class ShimmerArea(
     }
 
     @Suppress("MagicNumber")
-    private fun Float.toRadian(): Float = this / 180 * Math.PI.toFloat()
+    private fun Float.toRadian(): Float = this / 180 * PI.toFloat()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other == null || this::class != other::class) return false
 
         other as ShimmerArea
 

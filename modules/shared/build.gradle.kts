@@ -28,6 +28,7 @@ kotlin {
             implementation(project(":lib_mpei_api"))
             implementation(project(":lib_settings"))
             implementation(project(":ui_theme"))
+            implementation(project(":ui_shimmer"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)

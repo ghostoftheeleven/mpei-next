@@ -23,6 +23,7 @@
   `ScheduleService` (поиск и неделя через `MpeiScheduleApi`), `ScheduleCache` (выбранное расписание и последние 12 недель
   в `KeyValueStore`, JSON) и `FavoriteSchedules` (избранное, JSON в `KeyValueStore`) и `ScheduleController` (состояния `Search` / `Week`, офлайн-копия при ошибке сети, звёздочка). 36 тестов на JVM
   (в тестах контроллера `MockEngine` отвечает на реальном диспетчере, поэтому ждём через `settle`, а не `advanceUntilIdle`).
+  `ui_shimmer` теперь KMP (`Modifier.shimmer()` в общем коде: градиентная полоса вместо `android.graphics.Matrix`, границы из `LocalWindowInfo`); визуально на эмуляторе не сверялся, только сборка Android. Скелетон недели в `ScheduleScreen` использует его.
   Экран расписания (`ScheduleScreen`: поиск, неделя, офлайн-пометка) в `:shared`, `App` с нижними вкладками «Расписание» / «БАРС»,
   `MainViewController` собирает Ktor-клиент, `ScheduleService` и `ScheduleCache` на `NSUserDefaults`. На iOS не запускалось: только
   `compileCommonMainKotlinMetadata`/`compileIosMainKotlinMetadata` локально и CI. Избранное в `:shared` готово (звёздочка на неделе, список в поиске). Не сделано: полноценный онбординг (сейчас приветствие на экране поиска),

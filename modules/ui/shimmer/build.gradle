@@ -1,3 +1,0 @@
-plugins {
-    alias(mpeix.plugins.lib.android.compose)
-}

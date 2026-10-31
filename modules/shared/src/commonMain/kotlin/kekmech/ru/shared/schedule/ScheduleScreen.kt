@@ -4,7 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import kekmech.ru.ui_shimmer.shimmer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -159,7 +164,7 @@ private fun WeekView(
         val schedule = state.schedule
         when {
             state.loading && schedule == null ->
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                WeekSkeleton()
             schedule == null -> Column(
                 Modifier.fillMaxSize().padding(16.dp),
                 verticalArrangement = Arrangement.Center,
@@ -243,3 +248,25 @@ private fun typeTitle(type: ClassesType, raw: String?): String = when (type) {
     ClassesType.CONSULTATION -> "Консультация"
     ClassesType.UNDEFINED -> raw.orEmpty()
 }
+
+private const val SKELETON_DAYS = 3
+private const val SKELETON_CLASSES_PER_DAY = 2
+
+/** The grey blocks that stand where the days and the classes will be while the week loads. */
+@Composable
+private fun WeekSkeleton() {
+    val color = MaterialTheme.colorScheme.surfaceVariant
+    Column(
+        Modifier.fillMaxSize().padding(16.dp).shimmer(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        repeat(SKELETON_DAYS) {
+            Box(Modifier.fillMaxWidth(SKELETON_TITLE_WIDTH).height(20.dp).clip(RoundedCornerShape(6.dp)).background(color))
+            repeat(SKELETON_CLASSES_PER_DAY) {
+                Box(Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(10.dp)).background(color))
+            }
+        }
+    }
+}
+
+private const val SKELETON_TITLE_WIDTH = 0.5f
