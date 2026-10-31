@@ -19,6 +19,12 @@
   `MpeixTheme` в `commonMain`, шрифты Roboto в `composeResources/font` (`rememberRobotoFontFamily()`), прозрачные системные
   панели через `expect/actual`, превью в `androidMain`. `RobotoFontFamily` как обычная переменная остался в `androidMain`
   для трёх Android-экранов. Остаётся: `ui_kit_*`, иконки, строки RU/EN, `ui_shimmer`, `ui_splash`.
+- **M3 начат:** `feature_schedule_shared` (KMP): модели расписания (`@Serializable`, kotlinx-datetime), `MpeiScheduleMapper`,
+  `ScheduleService` (поиск и неделя через `MpeiScheduleApi`), `ScheduleCache` (выбранное расписание и последние 12 недель
+  в `KeyValueStore`, JSON) и `ScheduleController` (состояния `Search` / `Week`, офлайн-копия при ошибке сети). 32 теста на JVM
+  (в тестах контроллера `MockEngine` отвечает на реальном диспетчере, поэтому ждём через `settle`, а не `advanceUntilIdle`).
+  Не сделано: экран расписания в `:shared` (Compose, iOS), подключение к `App`, `KeyValueStore` для iOS в `MainViewController`,
+  Room KMP вместо `KeyValueStore`-кэша (если понадобится), перевод Android-потребителей на эти классы.
 - **Побочный эффект Compose Multiplatform 1.9.3:** он жёстко (`strictly`) задаёт `androidx.compose.material3:1.4.0-beta01`,
   поэтому всё Android-приложение теперь на этой бете вместо 1.3.2 из BOM. В 1.4 `material-icons-core` не подтягивается сам:
   его нужно добавлять явно (`libs.compose.material.icons.core`) в модули, которые импортируют `androidx.compose.material.icons`.

@@ -3,6 +3,7 @@
 // Compose code in :shared. The Android app still has its own copy (feature_schedule_impl) until M3 moves it here.
 plugins {
     alias(mpeix.plugins.lib.kmp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -10,6 +11,8 @@ kotlin {
         commonMain.dependencies {
             api(project(":lib_mpei_api"))
             api(project(":ext_datetime"))
+            api(project(":lib_settings"))
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {
