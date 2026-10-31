@@ -4,6 +4,7 @@ package kekmech.ru.shared
 
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.ComposeUIViewController
+import kekmech.ru.feature_map_shared.MapMarkersRepository
 import kekmech.ru.feature_notes_shared.NotesStore
 import kekmech.ru.feature_schedule_shared.FavoriteSchedules
 import kekmech.ru.feature_schedule_shared.ScheduleCache
@@ -14,6 +15,8 @@ import kekmech.ru.lib_http.ClientIdentity
 import kekmech.ru.lib_http.createHttpClient
 import kekmech.ru.lib_mpei_api.MpeiScheduleApi
 import kekmech.ru.lib_settings.UserDefaultsKeyValueStore
+import kekmech.ru.shared.map.MapDependencies
+import kekmech.ru.ui_map.tileFetcher
 import platform.Foundation.NSLocale
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSUUID
@@ -30,11 +33,13 @@ public fun MainViewController(): UIViewController = ComposeUIViewController {
     // The session of BARS lives in the Keychain, so the student stays signed in after the app is closed
     val bars = remember { BarsClient(sessionStore = KeychainBarsSessionStore()) }
     val store = remember { UserDefaultsKeyValueStore() }
-    val scheduleService = remember { ScheduleService(MpeiScheduleApi(createHttpClient(clientIdentity()))) }
+    val client = remember { createHttpClient(clientIdentity()) }
+    val scheduleService = remember { ScheduleService(MpeiScheduleApi(client)) }
     val scheduleCache = remember { ScheduleCache(store) }
     val favorites = remember { FavoriteSchedules(store) }
     val notesStore = remember { NotesStore(store) }
-    App(bars, scheduleService, scheduleCache, favorites, notesStore)
+    val map = remember { MapDependencies(MapMarkersRepository(client, store), client.tileFetcher(), store) }
+    App(bars, scheduleService, scheduleCache, favorites, notesStore, map)
 }
 
 private fun clientIdentity(): ClientIdentity {

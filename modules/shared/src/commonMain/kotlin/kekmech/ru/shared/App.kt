@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kekmech.ru.feature_bars_shared.BarsController
+import kekmech.ru.feature_map_shared.MapController
 import kekmech.ru.feature_notes_shared.NotesController
 import kekmech.ru.feature_notes_shared.NotesStore
 import kekmech.ru.feature_schedule_shared.DashboardController
@@ -32,15 +33,19 @@ import kekmech.ru.feature_schedule_shared.WeekLoader
 import kekmech.ru.lib_bars_client.BarsApi
 import kekmech.ru.shared.bars.BarsScreen
 import kekmech.ru.shared.dashboard.DashboardScreen
+import kekmech.ru.shared.map.MapDependencies
+import kekmech.ru.ui_map.MapScreen
 import kekmech.ru.shared.notes.NotesScreen
 import kekmech.ru.shared.schedule.ScheduleScreen
+import kekmech.ru.ui_map.TileLoader
 import kekmech.ru.ui_theme.theme.MpeixTheme
 import kotlin.time.ExperimentalTime
 
 private const val TAB_HOME = 0
 private const val TAB_SCHEDULE = 1
 private const val TAB_NOTES = 2
-private const val TAB_BARS = 3
+private const val TAB_MAP = 3
+private const val TAB_BARS = 4
 
 /**
  * The root of the shared UI. The sections that were moved from the Android app so far: the home screen and the
@@ -52,6 +57,7 @@ private const val TAB_BARS = 3
  * @param scheduleCache the offline copy of the schedule; the platform decides where it is kept
  * @param favorites the groups and the teachers that the student has marked
  * @param notesStore the notes of the student for the classes
+ * @param map the campus map: the markers, the tiles and the settings
  */
 @Composable
 public fun App(
@@ -60,6 +66,7 @@ public fun App(
     scheduleCache: ScheduleCache,
     favorites: FavoriteSchedules,
     notesStore: NotesStore,
+    map: MapDependencies,
 ) {
     MpeixTheme {
         Surface(Modifier.fillMaxSize()) {
@@ -72,6 +79,8 @@ public fun App(
             }
             val barsController = remember(bars) { BarsController(bars, scope) }
             val notes = remember(notesStore) { NotesController(notesStore) }
+            val mapController = remember(map) { MapController(map.markers, map.settings, scope) }
+            val tileLoader = remember(map) { TileLoader(scope, map.tiles) }
             val scheduleState by schedule.state.collectAsState()
             val selected = (scheduleState as? ScheduleUiState.Week)?.selected
             var tab by remember { mutableIntStateOf(TAB_HOME) }
@@ -103,6 +112,12 @@ public fun App(
                             label = { Text("Заметки") },
                         )
                         NavigationBarItem(
+                            selected = tab == TAB_MAP,
+                            onClick = { tab = TAB_MAP },
+                            icon = {},
+                            label = { Text("Карта") },
+                        )
+                        NavigationBarItem(
                             selected = tab == TAB_BARS,
                             onClick = { tab = TAB_BARS },
                             icon = {},
@@ -116,6 +131,7 @@ public fun App(
                         TAB_HOME -> DashboardScreen(dashboard, notes, onChooseSchedule = { tab = TAB_SCHEDULE })
                         TAB_SCHEDULE -> ScheduleScreen(schedule, notes)
                         TAB_NOTES -> NotesScreen(notes, selected?.name)
+                        TAB_MAP -> MapScreen(mapController, tileLoader)
                         else -> BarsScreen(barsController)
                     }
                 }

@@ -25,6 +25,8 @@ kotlin {
             implementation(project(":feature_bars_shared"))
             implementation(project(":feature_schedule_shared"))
             implementation(project(":feature_notes_shared"))
+            implementation(project(":feature_map_shared"))
+            implementation(project(":ui_map"))
             implementation(project(":lib_http"))
             implementation(project(":lib_mpei_api"))
             implementation(project(":lib_settings"))
