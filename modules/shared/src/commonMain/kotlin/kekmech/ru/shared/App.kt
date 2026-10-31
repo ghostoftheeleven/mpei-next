@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -24,7 +25,10 @@ import kekmech.ru.feature_map_shared.MapController
 import kekmech.ru.feature_notes_shared.NotesController
 import kekmech.ru.feature_notes_shared.NotesStore
 import kekmech.ru.feature_schedule_shared.DashboardController
+import kekmech.ru.feature_schedule_shared.ClassReminderSettings
 import kekmech.ru.feature_schedule_shared.FavoriteSchedules
+import kekmech.ru.feature_schedule_shared.ReminderScheduler
+import kekmech.ru.feature_schedule_shared.RemindersController
 import kekmech.ru.feature_schedule_shared.ScheduleCache
 import kekmech.ru.feature_schedule_shared.ScheduleController
 import kekmech.ru.feature_schedule_shared.ScheduleService
@@ -36,6 +40,7 @@ import kekmech.ru.shared.dashboard.DashboardScreen
 import kekmech.ru.shared.map.MapDependencies
 import kekmech.ru.ui_map.MapScreen
 import kekmech.ru.shared.notes.NotesScreen
+import kekmech.ru.shared.settings.SettingsScreen
 import kekmech.ru.shared.schedule.ScheduleScreen
 import kekmech.ru.ui_map.TileLoader
 import kekmech.ru.ui_theme.theme.MpeixTheme
@@ -58,6 +63,7 @@ private const val TAB_BARS = 4
  * @param favorites the groups and the teachers that the student has marked
  * @param notesStore the notes of the student for the classes
  * @param map the campus map: the markers, the tiles and the settings
+ * @param reminderScheduler shows the reminders about the classes; the platform decides how
  */
 @Composable
 public fun App(
@@ -67,6 +73,7 @@ public fun App(
     favorites: FavoriteSchedules,
     notesStore: NotesStore,
     map: MapDependencies,
+    reminderScheduler: ReminderScheduler,
 ) {
     MpeixTheme {
         Surface(Modifier.fillMaxSize()) {
@@ -80,6 +87,16 @@ public fun App(
             val barsController = remember(bars) { BarsController(bars, scope) }
             val notes = remember(notesStore) { NotesController(notesStore) }
             val mapController = remember(map) { MapController(map.markers, map.settings, scope) }
+            val reminders = remember(scheduleService, scheduleCache, reminderScheduler) {
+                val loader = WeekLoader(scheduleService, scheduleCache)
+                RemindersController(
+                    settings = ClassReminderSettings(map.settings),
+                    scheduler = reminderScheduler,
+                    loadWeek = { schedule, offset -> loader.load(schedule, offset).schedule },
+                    scope = scope,
+                )
+            }
+            var showSettings by remember { mutableStateOf(false) }
             val tileLoader = remember(map) { TileLoader(scope, map.tiles) }
             val scheduleState by schedule.state.collectAsState()
             val selected = (scheduleState as? ScheduleUiState.Week)?.selected
@@ -87,9 +104,15 @@ public fun App(
             LaunchedEffect(notes, selected?.name) { notes.setSchedule(selected?.name) }
             // the home screen is loaded again every time it appears, so "now" is not stale
             LaunchedEffect(dashboard, selected, tab) { if (tab == TAB_HOME) dashboard.show(selected) }
+            // the reminders are planned again when the app is opened and when the chosen schedule changes
+            LaunchedEffect(reminders, selected) { reminders.sync(selected) }
             LaunchedEffect(schedule) { schedule.start() }
             LaunchedEffect(barsController) { barsController.start() }
 
+            if (showSettings) {
+                SettingsScreen(reminders, hasSchedule = selected != null, onBack = { showSettings = false })
+                return@Surface
+            }
             Scaffold(
                 bottomBar = {
                     NavigationBar {
@@ -128,7 +151,7 @@ public fun App(
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
                     when (tab) {
-                        TAB_HOME -> DashboardScreen(dashboard, notes, onChooseSchedule = { tab = TAB_SCHEDULE })
+                        TAB_HOME -> DashboardScreen(dashboard, notes, onChooseSchedule = { tab = TAB_SCHEDULE }, onOpenSettings = { showSettings = true })
                         TAB_SCHEDULE -> ScheduleScreen(schedule, notes)
                         TAB_NOTES -> NotesScreen(notes, selected?.name)
                         TAB_MAP -> MapScreen(mapController, tileLoader)

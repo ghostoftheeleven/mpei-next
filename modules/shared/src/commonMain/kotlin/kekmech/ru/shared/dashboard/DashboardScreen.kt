@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,11 +35,19 @@ import kotlinx.datetime.LocalDateTime
 
 /** The home screen: the week of the semester and the classes that are going now and come next. */
 @Composable
-public fun DashboardScreen(controller: DashboardController, notes: NotesController, onChooseSchedule: () -> Unit) {
+public fun DashboardScreen(
+    controller: DashboardController,
+    notes: NotesController,
+    onChooseSchedule: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
     val state by controller.state.collectAsState()
     val noteList by notes.notes.collectAsState()
     Column(Modifier.fillMaxSize().safeContentPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Главная", style = MaterialTheme.typography.headlineSmall)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Главная", style = MaterialTheme.typography.headlineSmall)
+            TextButton(onClick = onOpenSettings) { Text("Настройки") }
+        }
         when (val current = state) {
             DashboardUiState.NoSchedule -> {
                 Text("Выберите группу или преподавателя, чтобы видеть ближайшие пары.")

@@ -16,6 +16,7 @@ import kekmech.ru.lib_http.createHttpClient
 import kekmech.ru.lib_mpei_api.MpeiScheduleApi
 import kekmech.ru.lib_settings.UserDefaultsKeyValueStore
 import kekmech.ru.shared.map.MapDependencies
+import kekmech.ru.shared.reminders.IosReminderScheduler
 import kekmech.ru.ui_map.tileFetcher
 import kekmech.ru.ui_map.tileHttpClient
 import platform.Foundation.NSLocale
@@ -40,7 +41,8 @@ public fun MainViewController(): UIViewController = ComposeUIViewController {
     val favorites = remember { FavoriteSchedules(store) }
     val notesStore = remember { NotesStore(store) }
     val map = remember { MapDependencies(MapMarkersRepository(client, store), tileHttpClient("MPEI-Hub/$APP_VERSION (iOS)").tileFetcher(), store) }
-    App(bars, scheduleService, scheduleCache, favorites, notesStore, map)
+    val reminderScheduler = remember { IosReminderScheduler() }
+    App(bars, scheduleService, scheduleCache, favorites, notesStore, map, reminderScheduler)
 }
 
 private fun clientIdentity(): ClientIdentity {
