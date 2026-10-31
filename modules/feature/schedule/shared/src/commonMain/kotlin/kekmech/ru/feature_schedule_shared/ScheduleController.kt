@@ -22,6 +22,7 @@ public sealed interface ScheduleUiState {
         val query: String = "",
         val results: List<SearchResult> = emptyList(),
         val busy: Boolean = false,
+        val favorites: List<SelectedSchedule> = emptyList(),
         val error: String? = null,
     ) : ScheduleUiState
 
@@ -35,6 +36,7 @@ public sealed interface ScheduleUiState {
         val schedule: Schedule? = null,
         val loading: Boolean = true,
         val offline: Boolean = false,
+        val favorite: Boolean = false,
         val error: String? = null,
     ) : ScheduleUiState
 }
@@ -49,6 +51,7 @@ public sealed interface ScheduleUiState {
 public class ScheduleController(
     private val service: ScheduleService,
     private val cache: ScheduleCache,
+    private val favorites: FavoriteSchedules,
     private val scope: CoroutineScope,
     private val clock: Clock = Clock.System,
 ) {
@@ -69,7 +72,7 @@ public class ScheduleController(
         val current = mutableState.value as? ScheduleUiState.Search ?: return
         searchJob?.cancel()
         if (query.trim().length < MIN_QUERY_LENGTH) {
-            mutableState.value = ScheduleUiState.Search(query = query)
+            mutableState.value = searchState(query = query)
             return
         }
         mutableState.value = current.copy(query = query, busy = true, error = null)
@@ -77,25 +80,54 @@ public class ScheduleController(
             delay(SEARCH_DEBOUNCE_MILLIS)
             val next = try {
                 val results = service.search(query.trim())
-                ScheduleUiState.Search(query = query, results = results)
+                searchState(query = query, results = results)
             } catch (e: CancellationException) {
                 throw e
             } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-                ScheduleUiState.Search(query = query, error = describe(e))
+                searchState(query = query, error = describe(e))
             }
             mutableState.value = next
         }
     }
 
     public fun select(result: SearchResult) {
+        open(SelectedSchedule(type = result.type, name = result.name))
+    }
+
+    /** Opens a schedule from the list of the favorites. */
+    public fun openFavorite(selected: SelectedSchedule) {
+        open(selected)
+    }
+
+    /** Adds the shown schedule to the favorites, or removes it from them. */
+    public fun toggleFavorite() {
+        val current = mutableState.value as? ScheduleUiState.Week ?: return
+        mutableState.value = current.copy(favorite = favorites.toggle(current.selected))
+    }
+
+    public fun removeFavorite(selected: SelectedSchedule) {
+        favorites.remove(selected)
+        val current = mutableState.value as? ScheduleUiState.Search ?: return
+        mutableState.value = current.copy(favorites = favorites.list())
+    }
+
+    private fun open(selected: SelectedSchedule) {
         if (mutableState.value !is ScheduleUiState.Search) return
         searchJob?.cancel()
-        val selected = SelectedSchedule(type = result.type, name = result.name)
         cache.saveSelected(selected)
-        val week = ScheduleUiState.Week(selected)
+        val week = weekState(selected)
         mutableState.value = week
         loadWeek(week)
     }
+
+    private fun weekState(selected: SelectedSchedule) =
+        ScheduleUiState.Week(selected, favorite = favorites.contains(selected))
+
+    private fun searchState(
+        query: String = "",
+        results: List<SearchResult> = emptyList(),
+        error: String? = null,
+    ) = ScheduleUiState.Search(query = query, results = results, favorites = favorites.list(), error = error)
 
     /** [delta] weeks forward (positive) or back (negative) from the shown one. */
     public fun shiftWeek(delta: Int) {
@@ -122,7 +154,7 @@ public class ScheduleController(
     public fun changeSchedule() {
         weekJob?.cancel()
         cache.clearSelected()
-        mutableState.value = ScheduleUiState.Search()
+        mutableState.value = searchState()
     }
 
     private fun loadWeek(week: ScheduleUiState.Week) {
@@ -151,7 +183,7 @@ public class ScheduleController(
         moscowDate(clock).startOfWeek().plus(weekOffset, DateTimeUnit.WEEK)
 
     private fun initialState(): ScheduleUiState =
-        cache.selected()?.let { ScheduleUiState.Week(it) } ?: ScheduleUiState.Search()
+        cache.selected()?.let { weekState(it) } ?: searchState()
 
     private fun describe(error: Exception): String = when (error) {
         is ScheduleNotFoundException -> "Расписание не найдено"

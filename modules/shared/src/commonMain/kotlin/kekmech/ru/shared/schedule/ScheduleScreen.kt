@@ -29,6 +29,7 @@ import kekmech.ru.feature_schedule_shared.ClassesType
 import kekmech.ru.feature_schedule_shared.Day
 import kekmech.ru.feature_schedule_shared.ScheduleController
 import kekmech.ru.feature_schedule_shared.ScheduleType
+import kekmech.ru.feature_schedule_shared.SelectedSchedule
 import kekmech.ru.feature_schedule_shared.SearchResult
 import kekmech.ru.feature_schedule_shared.ScheduleUiState
 import kekmech.ru.feature_schedule_shared.Week
@@ -45,6 +46,8 @@ public fun ScheduleScreen(controller: ScheduleController) {
             state = current,
             onQuery = controller::onQueryChange,
             onSelect = controller::select,
+            onFavorite = controller::openFavorite,
+            onRemoveFavorite = controller::removeFavorite,
         )
         is ScheduleUiState.Week -> WeekView(
             state = current,
@@ -52,6 +55,7 @@ public fun ScheduleScreen(controller: ScheduleController) {
             onNext = { controller.shiftWeek(1) },
             onRefresh = controller::refresh,
             onChange = controller::changeSchedule,
+            onToggleFavorite = controller::toggleFavorite,
         )
     }
 }
@@ -61,9 +65,17 @@ private fun SearchView(
     state: ScheduleUiState.Search,
     onQuery: (String) -> Unit,
     onSelect: (SearchResult) -> Unit,
+    onFavorite: (SelectedSchedule) -> Unit,
+    onRemoveFavorite: (SelectedSchedule) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().safeContentPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Расписание", style = MaterialTheme.typography.headlineSmall)
+        if (state.favorites.isEmpty() && state.query.isEmpty()) {
+            Text(
+                "Введите номер группы (например, А-01-22) или фамилию преподавателя, чтобы открыть расписание.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
         OutlinedTextField(
             value = state.query,
             onValueChange = onQuery,
@@ -77,6 +89,20 @@ private fun SearchView(
             state.query.trim().length >= 2 && state.results.isEmpty() -> Text("Ничего не найдено")
         }
         LazyColumn {
+            if (state.query.trim().length < 2 && state.favorites.isNotEmpty()) {
+                item { Text("Избранное", style = MaterialTheme.typography.titleSmall) }
+                items(state.favorites) { favorite ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { onFavorite(favorite) },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(favorite.name, style = MaterialTheme.typography.titleMedium)
+                        TextButton(onClick = { onRemoveFavorite(favorite) }) { Text("Убрать") }
+                    }
+                    HorizontalDivider()
+                }
+            }
             items(state.results) { result ->
                 Column(Modifier.fillMaxWidth().clickable { onSelect(result) }.padding(vertical = 10.dp)) {
                     Text(result.name, style = MaterialTheme.typography.titleMedium)
@@ -99,6 +125,7 @@ private fun WeekView(
     onNext: () -> Unit,
     onRefresh: () -> Unit,
     onChange: () -> Unit,
+    onToggleFavorite: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().safeContentPadding()) {
         Row(
@@ -106,8 +133,11 @@ private fun WeekView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(state.selected.name, style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = onChange) { Text("Сменить") }
+            Text(state.selected.name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onToggleFavorite) { Text(if (state.favorite) "★ В избранном" else "☆ В избранное") }
+                TextButton(onClick = onChange) { Text("Сменить") }
+            }
         }
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 8.dp),

@@ -17,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kekmech.ru.feature_bars_shared.BarsController
+import kekmech.ru.feature_schedule_shared.FavoriteSchedules
 import kekmech.ru.feature_schedule_shared.ScheduleCache
 import kekmech.ru.feature_schedule_shared.ScheduleController
 import kekmech.ru.feature_schedule_shared.ScheduleService
@@ -35,14 +36,20 @@ private const val TAB_BARS = 1
  * @param bars the client of the BARS portal; the platform decides where its session is kept
  * @param scheduleService the timetable of MPEI
  * @param scheduleCache the offline copy of the schedule; the platform decides where it is kept
+ * @param favorites the groups and the teachers that the student has marked
  */
 @Composable
-public fun App(bars: BarsApi, scheduleService: ScheduleService, scheduleCache: ScheduleCache) {
+public fun App(
+    bars: BarsApi,
+    scheduleService: ScheduleService,
+    scheduleCache: ScheduleCache,
+    favorites: FavoriteSchedules,
+) {
     MpeixTheme {
         Surface(Modifier.fillMaxSize()) {
             val scope = rememberCoroutineScope()
-            val schedule = remember(scheduleService, scheduleCache) {
-                ScheduleController(scheduleService, scheduleCache, scope)
+            val schedule = remember(scheduleService, scheduleCache, favorites) {
+                ScheduleController(scheduleService, scheduleCache, favorites, scope)
             }
             val barsController = remember(bars) { BarsController(bars, scope) }
             LaunchedEffect(schedule) { schedule.start() }

@@ -66,6 +66,7 @@ internal class ScheduleControllerTest {
         return ScheduleController(
             service = ScheduleService(api, clock),
             cache = ScheduleCache(store),
+            favorites = FavoriteSchedules(store),
             scope = scope.backgroundScope,
             clock = clock,
         )
@@ -252,5 +253,63 @@ internal class ScheduleControllerTest {
 
         assertNull(cache.week(selected, monday))
         assertNotNull(cache.week(selected, kotlinx.datetime.LocalDate(2030, 1, 1 + ScheduleCache.MAX_WEEKS + 2)))
+    }
+
+    private val selectedGroup = SelectedSchedule(ScheduleType.GROUP, "А-01-22")
+
+    @Test
+    fun `the star adds the shown schedule to the favorites and removes it`() = runTest {
+        val controller = controller(this)
+        controller.onQueryChange("А-01")
+        settle(controller)
+        controller.select(found)
+        settle(controller)
+        assertEquals(false, (controller.state.value as ScheduleUiState.Week).favorite)
+
+        controller.toggleFavorite()
+        assertEquals(true, (controller.state.value as ScheduleUiState.Week).favorite)
+        assertEquals(listOf(selectedGroup), FavoriteSchedules(store).list())
+
+        controller.toggleFavorite()
+        assertEquals(false, (controller.state.value as ScheduleUiState.Week).favorite)
+        assertEquals(emptyList(), FavoriteSchedules(store).list())
+    }
+
+    @Test
+    fun `the search shows the favorites and a favorite opens its week`() = runTest {
+        FavoriteSchedules(store).add(selectedGroup)
+        val controller = controller(this)
+        assertEquals(listOf(selectedGroup), (controller.state.value as ScheduleUiState.Search).favorites)
+
+        controller.openFavorite(selectedGroup)
+        settle(controller)
+
+        val state = controller.state.value as ScheduleUiState.Week
+        assertEquals(selectedGroup, state.selected)
+        assertEquals(true, state.favorite)
+        assertNotNull(state.schedule)
+    }
+
+    @Test
+    fun `a favorite is removed from the search`() = runTest {
+        FavoriteSchedules(store).add(selectedGroup)
+        val controller = controller(this)
+
+        controller.removeFavorite(selectedGroup)
+
+        assertEquals(emptyList(), (controller.state.value as ScheduleUiState.Search).favorites)
+        assertEquals(emptyList(), FavoriteSchedules(store).list())
+    }
+
+    @Test
+    fun `the same schedule is not added to the favorites twice`() {
+        val favorites = FavoriteSchedules(store)
+
+        favorites.add(selectedGroup)
+        favorites.add(SelectedSchedule(ScheduleType.GROUP, " а-01-22 "))
+
+        assertEquals(1, favorites.list().size)
+        assertTrue(favorites.contains(SelectedSchedule(ScheduleType.GROUP, "А-01-22")))
+        assertEquals(false, favorites.contains(SelectedSchedule(ScheduleType.PERSON, "А-01-22")))
     }
 }
