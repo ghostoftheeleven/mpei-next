@@ -22,25 +22,30 @@ import androidx.compose.ui.Modifier
 import kekmech.ru.feature_bars_shared.BarsController
 import kekmech.ru.feature_notes_shared.NotesController
 import kekmech.ru.feature_notes_shared.NotesStore
+import kekmech.ru.feature_schedule_shared.DashboardController
 import kekmech.ru.feature_schedule_shared.FavoriteSchedules
 import kekmech.ru.feature_schedule_shared.ScheduleCache
 import kekmech.ru.feature_schedule_shared.ScheduleController
 import kekmech.ru.feature_schedule_shared.ScheduleService
 import kekmech.ru.feature_schedule_shared.ScheduleUiState
+import kekmech.ru.feature_schedule_shared.WeekLoader
 import kekmech.ru.lib_bars_client.BarsApi
 import kekmech.ru.shared.bars.BarsScreen
+import kekmech.ru.shared.dashboard.DashboardScreen
 import kekmech.ru.shared.notes.NotesScreen
 import kekmech.ru.shared.schedule.ScheduleScreen
 import kekmech.ru.ui_theme.theme.MpeixTheme
 import kotlin.time.ExperimentalTime
 
-private const val TAB_SCHEDULE = 0
-private const val TAB_NOTES = 1
-private const val TAB_BARS = 2
+private const val TAB_HOME = 0
+private const val TAB_SCHEDULE = 1
+private const val TAB_NOTES = 2
+private const val TAB_BARS = 3
 
 /**
- * The root of the shared UI. Two sections were moved from the Android app so far: the schedule (milestone 3 of the
- * iOS port, see issue #5) and BARS (milestone 6); the other sections move here module by module.
+ * The root of the shared UI. The sections that were moved from the Android app so far: the home screen and the
+ * schedule (milestone 3 of the iOS port, see issue #5), the notes (milestone 4) and BARS (milestone 6); the other
+ * sections move here module by module.
  *
  * @param bars the client of the BARS portal; the platform decides where its session is kept
  * @param scheduleService the timetable of MPEI
@@ -62,18 +67,29 @@ public fun App(
             val schedule = remember(scheduleService, scheduleCache, favorites) {
                 ScheduleController(scheduleService, scheduleCache, favorites, scope)
             }
+            val dashboard = remember(scheduleService, scheduleCache) {
+                DashboardController(WeekLoader(scheduleService, scheduleCache), scope)
+            }
             val barsController = remember(bars) { BarsController(bars, scope) }
             val notes = remember(notesStore) { NotesController(notesStore) }
             val scheduleState by schedule.state.collectAsState()
-            val notesSchedule = (scheduleState as? ScheduleUiState.Week)?.selected?.name
-            LaunchedEffect(notes, notesSchedule) { notes.setSchedule(notesSchedule) }
+            val selected = (scheduleState as? ScheduleUiState.Week)?.selected
+            var tab by remember { mutableIntStateOf(TAB_HOME) }
+            LaunchedEffect(notes, selected?.name) { notes.setSchedule(selected?.name) }
+            // the home screen is loaded again every time it appears, so "now" is not stale
+            LaunchedEffect(dashboard, selected, tab) { if (tab == TAB_HOME) dashboard.show(selected) }
             LaunchedEffect(schedule) { schedule.start() }
             LaunchedEffect(barsController) { barsController.start() }
 
-            var tab by remember { mutableIntStateOf(TAB_SCHEDULE) }
             Scaffold(
                 bottomBar = {
                     NavigationBar {
+                        NavigationBarItem(
+                            selected = tab == TAB_HOME,
+                            onClick = { tab = TAB_HOME },
+                            icon = {},
+                            label = { Text("Главная") },
+                        )
                         NavigationBarItem(
                             selected = tab == TAB_SCHEDULE,
                             onClick = { tab = TAB_SCHEDULE },
@@ -97,8 +113,9 @@ public fun App(
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
                     when (tab) {
+                        TAB_HOME -> DashboardScreen(dashboard, notes, onChooseSchedule = { tab = TAB_SCHEDULE })
                         TAB_SCHEDULE -> ScheduleScreen(schedule, notes)
-                        TAB_NOTES -> NotesScreen(notes, notesSchedule)
+                        TAB_NOTES -> NotesScreen(notes, selected?.name)
                         else -> BarsScreen(barsController)
                     }
                 }

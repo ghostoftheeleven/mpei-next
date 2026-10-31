@@ -2,8 +2,6 @@
 
 package kekmech.ru.feature_schedule_shared
 
-import kekmech.ru.ext_datetime.moscowDate
-import kekmech.ru.ext_datetime.startOfWeek
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -13,9 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.plus
 import kotlin.time.ExperimentalTime
 
 public sealed interface ScheduleUiState {
@@ -62,6 +57,7 @@ public class ScheduleController(
     private val mutableState = MutableStateFlow<ScheduleUiState>(initialState())
     public val state: StateFlow<ScheduleUiState> = mutableState.asStateFlow()
 
+    private val loader = WeekLoader(service, cache, clock)
     private var searchJob: Job? = null
     private var weekJob: Job? = null
 
@@ -163,27 +159,18 @@ public class ScheduleController(
     private fun loadWeek(week: ScheduleUiState.Week) {
         weekJob?.cancel()
         weekJob = scope.launch {
-            val monday = mondayOf(week.weekOffset)
             val next = try {
-                val schedule = service.getWeek(week.selected.type, week.selected.name, week.weekOffset)
-                cache.saveWeek(week.selected, schedule)
-                week.copy(schedule = schedule, loading = false, offline = false, error = null)
+                val loaded = loader.load(week.selected, week.weekOffset)
+                week.copy(schedule = loaded.schedule, loading = false, offline = loaded.offline, error = null)
             } catch (e: CancellationException) {
                 throw e
             } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-                val cached = cache.week(week.selected, monday)
-                if (cached != null) {
-                    week.copy(schedule = cached, loading = false, offline = true, error = null)
-                } else {
-                    week.copy(schedule = null, loading = false, offline = false, error = describe(e))
-                }
+                week.copy(schedule = null, loading = false, offline = false, error = describe(e))
             }
             mutableState.value = next
         }
     }
 
-    private fun mondayOf(weekOffset: Int): LocalDate =
-        moscowDate(clock).startOfWeek().plus(weekOffset, DateTimeUnit.WEEK)
 
     private fun initialState(): ScheduleUiState =
         cache.selected()?.let { weekState(it) } ?: searchState()
