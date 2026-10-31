@@ -3,13 +3,16 @@
 package kekmech.ru.shared
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,12 +41,6 @@ import kekmech.ru.ui_map.TileLoader
 import kekmech.ru.ui_theme.theme.MpeixTheme
 import kotlin.time.ExperimentalTime
 
-private const val TAB_HOME = 0
-private const val TAB_SCHEDULE = 1
-private const val TAB_NOTES = 2
-private const val TAB_MAP = 3
-private const val TAB_BARS = 4
-
 /**
  * The root of the shared UI. The sections that were moved from the Android app so far: the home screen and the
  * schedule (milestone 3 of the iOS port, see issue #5), the notes (milestone 4), the map (milestone 5) and BARS
@@ -59,7 +56,8 @@ public fun App(dependencies: AppDependencies) {
     val map = dependencies.map
     val reminderScheduler = dependencies.reminderScheduler
     MpeixTheme {
-        Surface(Modifier.fillMaxSize()) {
+        // the keyboard lifts the whole screen with the bar: the field that is typed in stays visible
+        Surface(Modifier.fillMaxSize().imePadding()) {
             val scope = rememberCoroutineScope()
             val schedule = remember(scheduleService, scheduleCache, favorites) {
                 ScheduleController(scheduleService, scheduleCache, favorites, scope)
@@ -102,42 +100,17 @@ public fun App(dependencies: AppDependencies) {
                 return@Surface
             }
             Scaffold(
-                bottomBar = {
-                    NavigationBar {
-                        NavigationBarItem(
-                            selected = tab == TAB_HOME,
-                            onClick = { tab = TAB_HOME },
-                            icon = {},
-                            label = { Text("Главная") },
-                        )
-                        NavigationBarItem(
-                            selected = tab == TAB_SCHEDULE,
-                            onClick = { tab = TAB_SCHEDULE },
-                            icon = {},
-                            label = { Text("Расписание") },
-                        )
-                        NavigationBarItem(
-                            selected = tab == TAB_NOTES,
-                            onClick = { tab = TAB_NOTES },
-                            icon = {},
-                            label = { Text("Заметки") },
-                        )
-                        NavigationBarItem(
-                            selected = tab == TAB_MAP,
-                            onClick = { tab = TAB_MAP },
-                            icon = {},
-                            label = { Text("Карта") },
-                        )
-                        NavigationBarItem(
-                            selected = tab == TAB_BARS,
-                            onClick = { tab = TAB_BARS },
-                            icon = {},
-                            label = { Text("БАРС") },
-                        )
-                    }
-                },
+                // the insets are applied once, below: the bar takes the bottom one itself
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                bottomBar = { AppNavigationBar(selectedTab = tab, onSelect = { tab = it }) },
             ) { padding ->
-                Box(Modifier.fillMaxSize().padding(padding)) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        // the status bar (the Dynamic Island) and the sides; not safeContent: it has the zones of the gestures
+                        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
+                ) {
                     when (tab) {
                         TAB_HOME -> DashboardScreen(dashboard, notes, onChooseSchedule = { tab = TAB_SCHEDULE }, onOpenSettings = { showSettings = true })
                         TAB_SCHEDULE -> ScheduleScreen(schedule, notes)

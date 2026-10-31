@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -59,7 +58,7 @@ public fun BarsScreen(controller: BarsController) {
 
 @Composable
 internal fun Centered(content: @Composable () -> Unit) {
-    Box(Modifier.fillMaxSize().safeContentPadding(), contentAlignment = Alignment.Center) { content() }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { content() }
 }
 
 @Composable
@@ -77,7 +76,7 @@ private fun SignInView(state: BarsUiState.SignIn, onSignIn: (String, String) -> 
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     Column(
-        modifier = Modifier.fillMaxSize().safeContentPadding().verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Spacer(Modifier.height(32.dp))
@@ -125,7 +124,7 @@ private fun CodeView(
     var code by remember { mutableStateOf("") }
     val length = state.provider.codeLength
     Column(
-        modifier = Modifier.fillMaxSize().safeContentPadding().verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Spacer(Modifier.height(32.dp))

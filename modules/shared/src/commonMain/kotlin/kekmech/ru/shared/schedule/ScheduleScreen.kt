@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import kekmech.ru.feature_notes_shared.Note
 import kekmech.ru.feature_notes_shared.NotesController
 import kekmech.ru.feature_schedule_shared.Classes
+import kekmech.ru.shared.ClassCard
 import kekmech.ru.feature_schedule_shared.ClassesType
 import kekmech.ru.feature_schedule_shared.Day
 import kekmech.ru.feature_schedule_shared.ScheduleController
@@ -81,7 +81,7 @@ private fun SearchView(
     onFavorite: (SelectedSchedule) -> Unit,
     onRemoveFavorite: (SelectedSchedule) -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().safeContentPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Расписание", style = MaterialTheme.typography.headlineSmall)
         if (state.favorites.isEmpty() && state.query.isEmpty()) {
             Text(
@@ -154,7 +154,7 @@ private fun WeekView(
             onDismiss = { editing = null },
         )
     }
-    Column(Modifier.fillMaxSize().safeContentPadding()) {
+    Column(Modifier.fillMaxSize()) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -213,7 +213,7 @@ private fun DaysList(week: Week?, notes: List<Note>, onEditNote: (NoteTarget) ->
 
 @Composable
 private fun DayView(day: Day, notes: List<Note>, onEditNote: (NoteTarget) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(dayTitle(day.date), style = MaterialTheme.typography.titleMedium)
         if (day.classes.isEmpty()) {
             Text("Занятий нет", style = MaterialTheme.typography.bodySmall)
@@ -221,10 +221,9 @@ private fun DayView(day: Day, notes: List<Note>, onEditNote: (NoteTarget) -> Uni
         day.classes.forEach { classes ->
             val dateTime = LocalDateTime(day.date, classes.time.start)
             val note = notes.firstOrNull { it.classesName == classes.name && it.dateTime == dateTime }
-            ClassesView(classes, note) { onEditNote(NoteTarget(classes, dateTime)) }
+            ClassCard(classes, note, onClick = { onEditNote(NoteTarget(classes, dateTime)) })
         }
     }
-    HorizontalDivider()
 }
 
 @Composable
@@ -245,35 +244,6 @@ private fun NoteDialog(target: NoteTarget, initial: Note?, onSave: (String) -> U
         confirmButton = { TextButton(onClick = { onSave(text) }) { Text("Сохранить") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
     )
-}
-
-@Composable
-private fun ClassesView(classes: Classes, note: Note?, onClick: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(top = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Column(horizontalAlignment = Alignment.End) {
-            Text(formatTime(classes.time.start), style = MaterialTheme.typography.bodyMedium)
-            Text(formatTime(classes.time.end), style = MaterialTheme.typography.bodySmall)
-        }
-        Column(Modifier.weight(1f)) {
-            Text(classes.name, style = MaterialTheme.typography.bodyLarge)
-            val details = listOf(typeTitle(classes.type, classes.rawType), classes.place, classes.person, classes.groups)
-                .filter { it.isNotBlank() }
-            if (details.isNotEmpty()) {
-                Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
-            }
-            if (note != null) {
-                Text(
-                    "✎ ${NotesController.preview(note)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 2,
-                )
-            }
-        }
-    }
 }
 
 private fun weekTitle(state: ScheduleUiState.Week): String {
@@ -298,16 +268,6 @@ internal fun dayTitle(date: LocalDate): String =
 
 internal fun formatTime(time: LocalTime): String =
     "${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}"
-
-private fun typeTitle(type: ClassesType, raw: String?): String = when (type) {
-    ClassesType.LECTURE -> "Лекция"
-    ClassesType.PRACTICE -> "Практика"
-    ClassesType.LAB -> "Лабораторная"
-    ClassesType.COURSE -> "Курсовая"
-    ClassesType.EXAM -> "Экзамен"
-    ClassesType.CONSULTATION -> "Консультация"
-    ClassesType.UNDEFINED -> raw.orEmpty()
-}
 
 private const val SKELETON_DAYS = 3
 private const val SKELETON_CLASSES_PER_DAY = 2

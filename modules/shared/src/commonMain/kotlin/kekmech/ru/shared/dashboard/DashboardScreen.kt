@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -29,6 +28,7 @@ import kekmech.ru.feature_schedule_shared.DashboardUiState
 import kekmech.ru.feature_schedule_shared.UPCOMING_DAYS
 import kekmech.ru.feature_schedule_shared.UpcomingClass
 import kekmech.ru.feature_schedule_shared.WeekOfSemester
+import kekmech.ru.shared.ClassCard
 import kekmech.ru.shared.schedule.dayTitle
 import kekmech.ru.shared.schedule.formatTime
 import kotlinx.datetime.LocalDateTime
@@ -43,7 +43,7 @@ public fun DashboardScreen(
 ) {
     val state by controller.state.collectAsState()
     val noteList by notes.notes.collectAsState()
-    Column(Modifier.fillMaxSize().safeContentPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Главная", style = MaterialTheme.typography.headlineSmall)
             TextButton(onClick = onOpenSettings) { Text("Настройки") }
@@ -88,44 +88,22 @@ private fun ContentView(state: DashboardUiState.Content, notes: List<Note>) {
         Text("На ближайшие $UPCOMING_DAYS дней пар нет", style = MaterialTheme.typography.bodyMedium)
         return
     }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(state.upcoming) { upcoming ->
             UpcomingView(upcoming, today = upcoming.date == state.today, note = noteOf(upcoming, notes))
-            HorizontalDivider()
         }
     }
 }
 
 @Composable
 private fun UpcomingView(upcoming: UpcomingClass, today: Boolean, note: Note?) {
-    val classes = upcoming.classes
-    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Column(horizontalAlignment = Alignment.End) {
-            Text(formatTime(classes.time.start), style = MaterialTheme.typography.bodyMedium)
-            Text(formatTime(classes.time.end), style = MaterialTheme.typography.bodySmall)
-        }
-        Column(Modifier.weight(1f)) {
-            val dayLabel = if (today) "Сегодня" else dayTitle(upcoming.date)
-            Text(
-                if (upcoming.inProgress) "$dayLabel · идёт сейчас" else dayLabel,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (upcoming.inProgress) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            )
-            Text(classes.name, style = MaterialTheme.typography.bodyLarge)
-            val details = listOf(classes.place, classes.person).filter { it.isNotBlank() }
-            if (details.isNotEmpty()) {
-                Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
-            }
-            if (note != null) {
-                Text(
-                    "✎ ${NotesController.preview(note)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 2,
-                )
-            }
-        }
-    }
+    val dayLabel = if (today) "Сегодня" else dayTitle(upcoming.date)
+    ClassCard(
+        classes = upcoming.classes,
+        note = note,
+        caption = if (upcoming.inProgress) "$dayLabel · идёт сейчас" else dayLabel,
+        highlighted = upcoming.inProgress,
+    )
 }
 
 private fun noteOf(upcoming: UpcomingClass, notes: List<Note>): Note? {
