@@ -7,7 +7,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kekmech.ru.feature_app_settings_api.AppSettingsFeatureLauncher
 import kekmech.ru.feature_bars_api.BarsFeatureLauncher
 import kekmech.ru.feature_dashboard_api.DashboardFeatureLauncher
@@ -101,8 +100,6 @@ class BottomBarController(
         // Timber has no tree in release builds: a tab that fails to open must leave a trace in logcat
         Log.e("TabSwitch", "Failed to open the tab", e)
         Timber.e(e)
-        // TODO: remove in future if will no exceptions
-        FirebaseCrashlytics.getInstance().recordException(e)
     }
 
     private fun getItemByTab(tab: BottomTab) = when (tab) {

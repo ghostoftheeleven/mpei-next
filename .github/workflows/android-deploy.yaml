@@ -31,10 +31,8 @@ jobs:
 
       - name: Materialize sensitive info
         run: |
-          .github/materialize.sh $GOOGLE_SERVICES modules/app/google-services.json
           .github/materialize.sh $KEY_STORE_FILE keystore.jks
         env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
           KEY_STORE_FILE: ${{ secrets.KEY_STORE_FILE }}
 
       - name: Build Release artifacts

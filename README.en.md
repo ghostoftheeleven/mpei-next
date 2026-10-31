@@ -71,7 +71,7 @@
 * **Bilingual Localization:** full Russian and English localization with instant runtime language switching in settings.
 
 ### 🛡️ Paranoid Privacy (Zero-Tracker Policy)
-* **Zero Third-Party SDKs & Telemetry:** no Yandex.Metrica, no Firebase Analytics/Crashlytics, no ad networks, and no telemetry libraries whatsoever.
+* **Zero Third-Party SDKs & Telemetry:** no Yandex.Metrica, no Firebase or Google Analytics/Crashlytics, no ad networks, and no telemetry libraries whatsoever, on Android and on iOS. Crash reports and usage statistics are not sent anywhere.
 * **152-FZ & GDPR-K Compliance:** credentials, session cookies, local notes, and caches remain strictly on the user's physical device in hardware-backed secure storage.
 * **DeGoogled OS Ready:** tested and fully operational on privacy-hardened Android distributions (GrapheneOS, CalyxOS, LineageOS, AOSP) and Huawei devices (HarmonyOS / EMUI).
 

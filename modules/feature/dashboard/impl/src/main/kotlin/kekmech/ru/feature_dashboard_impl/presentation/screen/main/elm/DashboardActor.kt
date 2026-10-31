@@ -1,7 +1,5 @@
 package kekmech.ru.feature_dashboard_impl.presentation.screen.main.elm
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.crashlytics.recordException
 import kekmech.ru.ext_okhttp.NoInternetConnectionException
 import kekmech.ru.feature_dashboard_impl.domain.interactor.GetUpcomingEventsInteractor
 import kekmech.ru.feature_dashboard_impl.presentation.screen.main.elm.DashboardEvent.Internal
@@ -54,7 +52,7 @@ internal class DashboardActor(
                     is HttpException,
                     is NoInternetConnectionException -> Unit
                     // unexpected error types
-                    else -> FirebaseCrashlytics.getInstance().recordException(e)
+                    else -> android.util.Log.e("DashboardActor", "Unexpected error while loading the upcoming events", e)
                 }
                 throw e // always rethrow to process in ELM reducer
             }.mapEvents(

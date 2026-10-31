@@ -1,7 +1,5 @@
 package kekmech.ru.feature_bars_impl.presentation.screen.main_compose.elm
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.crashlytics.recordException
 import com.kekmech.lib_bars.BarsHandle
 import com.kekmech.lib_bars.auth.InitResult
 import com.kekmech.lib_bars.user.Discipline
@@ -52,8 +50,6 @@ internal class BarsComposeActor(
     private val scheduleRepository: ScheduleRepository,
 ) : Actor<Command, Event>() {
 
-    private val crashlytics get() = FirebaseCrashlytics.getInstance()
-
     override fun execute(command: Command): Flow<Event> =
         when (command) {
             is Command.SubscribeAuthStatus -> barsRepository.loginStateTrigger
@@ -70,11 +66,7 @@ internal class BarsComposeActor(
                     eventMapper = ::SubscribeAuthStatusSuccess,
                     errorMapper = { e ->
                         val e = ExceptionWithId(e)
-                        crashlytics.recordException(e.source) {
-                            key("screen", "main")
-                            key("stage", "auth.init")
-                            key("exception_id", e.uuid)
-                        }
+                        timber.log.Timber.e(e.source, "BARS main auth.init failed, id=${e.uuid}")
                         CheckAuthStatusFailure(e)
                     },
                 )
@@ -88,11 +80,7 @@ internal class BarsComposeActor(
                 eventMapper = ::GetProfileSuccess,
                 errorMapper = { e ->
                     val e = ExceptionWithId(e)
-                    crashlytics.recordException(e.source) {
-                        key("screen", "main")
-                        key("stage", "getProfile")
-                        key("exception_id", e.uuid)
-                    }
+                    timber.log.Timber.e(e.source, "BARS main getProfile failed, id=${e.uuid}")
                     CheckAuthStatusFailure(e)
                 },
             )
@@ -113,11 +101,7 @@ internal class BarsComposeActor(
                 eventMapper = { it },
                 errorMapper = { e ->
                     val e = ExceptionWithId(e)
-                    crashlytics.recordException(e.source) {
-                        key("screen", "main")
-                        key("stage", "getMarks")
-                        key("exception_id", e.uuid)
-                    }
+                    timber.log.Timber.e(e.source, "BARS main getMarks failed, id=${e.uuid}")
                     GetMarksFailure(e)
                 }
             )

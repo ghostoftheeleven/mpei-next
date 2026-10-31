@@ -9,7 +9,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kekmech.ru.ext_android.AppLocales
 import kekmech.ru.feature_app_settings_api.data.AppSettingsRepository
 import kekmech.ru.feature_app_settings_api.domain.model.isDarkTheme
@@ -58,7 +57,6 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             val selectedGroup = sharedPreferences.getString("selected_group", "")
             if (!selectedGroup.isNullOrEmpty()) {
-                FirebaseCrashlytics.getInstance().setCustomKey("schedule_name", selectedGroup)
                 mainScreenLauncher.launch()
             } else {
                 router.executeCommand(NewRoot { onboardingFeatureApi.getScreen() })

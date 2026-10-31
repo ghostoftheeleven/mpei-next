@@ -34,7 +34,7 @@ class MpeixApp : Application(),
         initKoin()
         appLifecycleObservers.forEach { it.onCreate(applicationContext) }
         ServiceUrlResolver.setAppEnvironment(appEnvironmentRepository.getAppEnvironment())
-        RemoteConfig.setup()
+        getKoin().get<RepoRemoteConfig>().refresh()
         initTimber()
         MMKV.initialize(this)
     }

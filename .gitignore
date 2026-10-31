@@ -4,10 +4,6 @@ local.properties
 **/.idea
 **/.idea/**
 **/build
-**/google-services.json
-!modules/app/google-services.json
-!modules/app/src/debug/google-services.json
-!modules/app/src/qa/google-services.json
 **/.DS_Store
 .figx-out
 .kotlin

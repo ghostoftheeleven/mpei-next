@@ -1,7 +1,5 @@
 package kekmech.ru.feature_bars_impl.presentation.screen.login.elm
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.crashlytics.recordException
 import com.kekmech.lib_bars.BarsHandle
 import com.kekmech.lib_bars.auth.GetStudentListResult
 import com.kekmech.lib_bars.auth.InitResult
@@ -53,8 +51,6 @@ internal class BarsLoginActor(
     private val router: Router,
     private val barsRepository: BarsRepository,
 ) : Actor<Command, Event>() {
-
-    private val crashlytics get() = FirebaseCrashlytics.getInstance()
     private var activeRequestCodeDeferred: kotlinx.coroutines.CompletableDeferred<Unit>? = null
 
     override fun execute(command: Command): Flow<Event> =
@@ -74,11 +70,7 @@ internal class BarsLoginActor(
                 eventMapper = ::CheckAuthStatusSuccess,
                 errorMapper = { e ->
                     val e = ExceptionWithId(e)
-                    crashlytics.recordException(e.source) {
-                        key("screen", "login")
-                        key("stage", "auth.init")
-                        key("exception_id", e.uuid)
-                    }
+                    timber.log.Timber.e(e.source, "BARS login auth.init failed, id=${e.uuid}")
                     CheckAuthStatusFailure(e)
                 },
             )
@@ -121,11 +113,7 @@ internal class BarsLoginActor(
                 eventMapper = ::LoginWithPasswordSuccess,
                 errorMapper = { e ->
                     val e = ExceptionWithId(e)
-                    crashlytics.recordException(e.source) {
-                        key("screen", "login")
-                        key("stage", "auth.login")
-                        key("exception_id", e.uuid)
-                    }
+                    timber.log.Timber.e(e.source, "BARS login auth.login failed, id=${e.uuid}")
                     LoginWithPasswordFailure(e)
                 },
             )
@@ -161,11 +149,7 @@ internal class BarsLoginActor(
                 },
                 errorMapper = { e ->
                     val e = ExceptionWithId(e)
-                    crashlytics.recordException(e.source) {
-                        key("screen", "2fa")
-                        key("stage", "auth.requestTwoFactorCode")
-                        key("exception_id", e.uuid)
-                    }
+                    timber.log.Timber.e(e.source, "BARS 2fa auth.requestTwoFactorCode failed, id=${e.uuid}")
                     RequestTwoFactorCodeFailure(e)
                 },
             )
@@ -200,11 +184,7 @@ internal class BarsLoginActor(
                 eventMapper = ::Submit2faCodeSuccess,
                 errorMapper = { e ->
                     val e = ExceptionWithId(e)
-                    crashlytics.recordException(e.source) {
-                        key("screen", "2fa")
-                        key("stage", "auth.submitTwoFactorCode")
-                        key("exception_id", e.uuid)
-                    }
+                    timber.log.Timber.e(e.source, "BARS 2fa auth.submitTwoFactorCode failed, id=${e.uuid}")
                     Submit2faCodeFailure(e)
                 },
             )
@@ -223,11 +203,7 @@ internal class BarsLoginActor(
                 eventMapper = ::GetAccountsSuccess,
                 errorMapper = { e ->
                     val e = ExceptionWithId(e)
-                    crashlytics.recordException(e.source) {
-                        key("screen", "accounts")
-                        key("stage", "auth.getStudentList")
-                        key("exception_id", e.uuid)
-                    }
+                    timber.log.Timber.e(e.source, "BARS accounts auth.getStudentList failed, id=${e.uuid}")
                     GetAccountsFailure(e)
                 },
             )

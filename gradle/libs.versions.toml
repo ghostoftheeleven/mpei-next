@@ -101,10 +101,6 @@ koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 
-# Firebase Libraries
-firebase-analytics = { module = "com.google.firebase:firebase-analytics", version = "23.0.0" }
-firebase-config = { module = "com.google.firebase:firebase-config", version = "23.0.0" }
-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version = "20.0.1" }
 
 # Squareup Libraries
 squareup-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
@@ -188,8 +184,6 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-parcelize = { id = "kotlin-parcelize" }
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
-firebase-crashlytics = "com.google.firebase.crashlytics:3.0.6"
-google-services = "com.google.gms.google-services:4.4.3"
 gradle-android-cacheFix = "org.gradle.android.cache-fix:3.0.1"
 
 [bundles]

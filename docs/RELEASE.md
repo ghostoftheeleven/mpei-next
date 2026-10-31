@@ -10,7 +10,7 @@
 | `applicationId` (релиз) | `ru.mpei.hub` |
 | `applicationId` (debug, qa) | `ru.mpei.hub.dev` |
 | `namespace` в коде | `kekmech.ru.mpeiapp` — **не менять** (иначе переедет весь код и манифест) |
-| Firebase-проект | `mpei-hub` (Crashlytics, Analytics, Remote Config) |
+| Настройки без выпуска версии | `statics/app/config.json` (обновление, тогглы); Firebase в приложении нет |
 
 `ru.mpei.hub` — новое приложение для пользователей: версии v0.5.x (`kekmech.ru.mpeiapp`) на него не обновляются
 и могут стоять на устройстве рядом.
@@ -89,7 +89,7 @@ APK не держим в `main`: бинарники остаются в исто
 - **RuStore:** APK или AAB, подпись своим ключом.
 - **App Store:** iOS-версии пока нет, см. #5.
 
-После получения релизного ключа в Firebase (Project settings → приложение `ru.mpei.hub` → Add fingerprint) добавить SHA-1 и SHA-256 ключа и ограничить API-ключ по пакету и SHA-1 (Google Cloud Console → APIs & Services → Credentials).
+Секрет `GOOGLE_SERVICES` в GitHub больше не нужен (Firebase убран из приложения), его можно удалить.
 
 ## Локальная подписанная сборка
 

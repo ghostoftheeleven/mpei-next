@@ -1,6 +1,5 @@
 package kekmech.ru.feature_schedule_impl.data.repository
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kekmech.ru.feature_schedule_api.PreheatSelectedScheduleProvider
 import kekmech.ru.feature_schedule_api.data.repository.ScheduleRepository
 import kekmech.ru.feature_schedule_api.domain.model.Schedule
@@ -58,8 +57,6 @@ internal class ScheduleRepositoryImpl(
 
     override fun setSelectedSchedule(selectedSchedule: SelectedSchedule) {
         this._selectedSchedule = selectedSchedule
-        FirebaseCrashlytics.getInstance()
-            .setCustomKey("schedule_name", selectedSchedule.name)
         widgetUpdater?.update()
         // reminders belong to the selected schedule
         classReminderController?.syncNow()

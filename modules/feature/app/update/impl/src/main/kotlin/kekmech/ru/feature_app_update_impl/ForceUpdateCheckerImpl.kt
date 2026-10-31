@@ -1,6 +1,5 @@
 package kekmech.ru.feature_app_update_impl
 
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import kekmech.ru.feature_app_update_api.ForceUpdateChecker
 import kekmech.ru.feature_app_update_api.ForceUpdateChecker.Companion.KEY_CURRENT_VERSION
 import kekmech.ru.feature_app_update_api.ForceUpdateChecker.Companion.KEY_MIN_REQUIRED_VERSION
@@ -12,6 +11,7 @@ import kekmech.ru.feature_app_update_impl.domain.models.ForceUpdateInfo
 import kekmech.ru.feature_app_update_impl.presentation.BlockingUpdateFragment
 import kekmech.ru.feature_app_update_impl.presentation.ForceUpdateFragment
 import kekmech.ru.lib_app_info.AppVersionName
+import kekmech.ru.lib_feature_toggles.RemoteConfigWrapper
 import kekmech.ru.lib_navigation.NewRoot
 import kekmech.ru.lib_navigation.Router
 import kekmech.ru.lib_navigation.ShowDialog
@@ -19,17 +19,16 @@ import kekmech.ru.lib_navigation.ShowDialog
 internal class ForceUpdateCheckerImpl(
     private val router: Router,
     private val appVersionName: AppVersionName,
+    private val remoteConfig: RemoteConfigWrapper,
 ) : ForceUpdateChecker {
 
     override fun check() {
-        val remoteConfig = FirebaseRemoteConfig.getInstance()
-
-        val isUpdateRequired = remoteConfig.getBoolean(KEY_UPDATE_REQUIRED)
-        val actualVersion = AppVersion(remoteConfig.getString(KEY_CURRENT_VERSION))
+        val isUpdateRequired = remoteConfig.getUntyped(KEY_UPDATE_REQUIRED).toBoolean()
+        val actualVersion = AppVersion(remoteConfig.getUntyped(KEY_CURRENT_VERSION))
         val appVersion = AppVersion(appVersionName.versionName)
-        val updateUrl = remoteConfig.getString(KEY_UPDATE_URL)
-        val description = remoteConfig.getString(KEY_UPDATE_DESCRIPTION)
-        val minRequiredVersion = AppVersion(remoteConfig.getString(KEY_MIN_REQUIRED_VERSION))
+        val updateUrl = remoteConfig.getUntyped(KEY_UPDATE_URL)
+        val description = remoteConfig.getUntyped(KEY_UPDATE_DESCRIPTION)
+        val minRequiredVersion = AppVersion(remoteConfig.getUntyped(KEY_MIN_REQUIRED_VERSION))
 
         val forceUpdateInfo = ForceUpdateInfo(
             actualVersion = actualVersion,

@@ -96,7 +96,7 @@
 
 Примеры библиотечных модулей в проекте:
 - `lib_elm` - обертки для использования ELM в presentation слое.
-- `lib_feature_toggles` - функционал фиче-тогглов на базе Firebase Remote Config.
+- `lib_feature_toggles` - функционал фиче-тогглов; значения берутся из файла `statics/app/config.json` репозитория (см. `statics/app/README.md`).
 - `lib_persistent_cache` - библиотека с персистентным кэшом для использования в репозиториях.
 
 ### `modules/ext`

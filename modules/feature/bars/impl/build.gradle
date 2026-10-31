@@ -50,7 +50,6 @@ dependencies {
     implementation(libs.androidx.webkit)
     implementation(libs.kekmech.lib.bars)
     implementation(libs.facebook.shimmer)
-    implementation(libs.firebase.crashlytics)
     implementation(libs.google.material)
     implementation(libs.koin.android)
     implementation(libs.koin.core)
