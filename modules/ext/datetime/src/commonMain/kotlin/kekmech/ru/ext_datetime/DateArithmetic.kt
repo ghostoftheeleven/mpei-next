@@ -7,7 +7,6 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
-import kotlinx.datetime.until
 
 /** The Monday of the week of this date (the schedule weeks start on Monday). */
 public fun LocalDate.startOfWeek(): LocalDate =
@@ -17,7 +16,9 @@ public fun LocalDate.startOfWeek(): LocalDate =
 public fun LocalDate.daysTo(other: LocalDate): Int = daysUntil(other)
 
 /** Whole weeks from this date to [other], the part of a week is dropped (ChronoUnit.WEEKS.between). */
-public fun LocalDate.weeksTo(other: LocalDate): Int = until(other, DateTimeUnit.WEEK)
+public fun LocalDate.weeksTo(other: LocalDate): Int = daysUntil(other) / DAYS_IN_WEEK
 
 /** Seconds from this time to [other] within one day, negative if [other] is earlier. */
 public fun LocalTime.secondsTo(other: LocalTime): Int = other.toSecondOfDay() - toSecondOfDay()
+
+private const val DAYS_IN_WEEK = 7

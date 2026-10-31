@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package kekmech.ru.shared
 
 import androidx.compose.runtime.remember
@@ -16,6 +18,7 @@ import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSUUID
 import platform.Foundation.preferredLanguages
 import platform.UIKit.UIViewController
+import kotlin.time.ExperimentalTime
 
 private const val APP_VERSION = "0.5.2"
 private const val KEY_DEVICE_ID = "mpeix_device_id"

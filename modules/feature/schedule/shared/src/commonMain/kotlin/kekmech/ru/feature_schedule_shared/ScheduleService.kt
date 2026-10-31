@@ -1,11 +1,14 @@
+@file:OptIn(ExperimentalTime::class)
+
 package kekmech.ru.feature_schedule_shared
 
 import kekmech.ru.ext_datetime.moscowDate
 import kekmech.ru.ext_datetime.startOfWeek
 import kekmech.ru.lib_mpei_api.MpeiScheduleApi
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
+import kotlin.time.ExperimentalTime
 
 /** There is no group or teacher with this name in the database of MPEI. */
 public class ScheduleNotFoundException(name: String) : Exception("Schedule not found in MPEI database for name: $name")

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package kekmech.ru.shared
 
 import androidx.compose.foundation.layout.Box
@@ -25,6 +27,7 @@ import kekmech.ru.lib_bars_client.BarsApi
 import kekmech.ru.shared.bars.BarsScreen
 import kekmech.ru.shared.schedule.ScheduleScreen
 import kekmech.ru.ui_theme.theme.MpeixTheme
+import kotlin.time.ExperimentalTime
 
 private const val TAB_SCHEDULE = 0
 private const val TAB_BARS = 1

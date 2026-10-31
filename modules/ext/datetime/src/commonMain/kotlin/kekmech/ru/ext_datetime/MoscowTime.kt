@@ -1,11 +1,14 @@
+@file:OptIn(ExperimentalTime::class)
+
 package kekmech.ru.ext_datetime
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.ExperimentalTime
 
 /** The schedule of MPEI is always read in Moscow time, wherever the phone is. */
 public val MoscowTimeZone: TimeZone = TimeZone.of("Europe/Moscow")

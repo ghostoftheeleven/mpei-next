@@ -28,6 +28,7 @@
   `MainViewController` собирает Ktor-клиент, `ScheduleService` и `ScheduleCache` на `NSUserDefaults`. На iOS не запускалось: только
   `compileCommonMainKotlinMetadata`/`compileIosMainKotlinMetadata` локально и CI. Избранное в `:shared` готово (звёздочка на неделе, список в поиске). Не сделано: полноценный онбординг (сейчас приветствие на экране поиска),
   Room KMP вместо `KeyValueStore`-кэша (если понадобится), перевод Android-потребителей на эти классы.
+- **kotlinx-datetime 0.7.1 (важно для iOS):** Ktor тянет 0.7.1, там `kotlinx.datetime.Clock/Instant` стали typealias на `kotlin.time`; при объявленной 0.6.2 линковка фреймворка `:shared` падала с `IrTypeAliasSymbolImpl is already bound`. Версия в каталоге теперь 0.7.1, в общем коде `kotlin.time.Clock/Instant` (`@OptIn(ExperimentalTime)`). `LocalDate.until` в 0.7 возвращает `Long`.
 - **Побочный эффект Compose Multiplatform 1.9.3:** он жёстко (`strictly`) задаёт `androidx.compose.material3:1.4.0-beta01`,
   поэтому всё Android-приложение теперь на этой бете вместо 1.3.2 из BOM. В 1.4 `material-icons-core` не подтягивается сам:
   его нужно добавлять явно (`libs.compose.material.icons.core`) в модули, которые импортируют `androidx.compose.material.icons`.

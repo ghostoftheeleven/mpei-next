@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package kekmech.ru.feature_schedule_shared
 
 import io.ktor.client.engine.mock.MockEngine
@@ -9,12 +11,13 @@ import kekmech.ru.lib_http.ClientIdentity
 import kekmech.ru.lib_http.createHttpClient
 import kekmech.ru.lib_mpei_api.MpeiScheduleApi
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.time.ExperimentalTime
 
 internal class ScheduleServiceTest {
 

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package kekmech.ru.feature_schedule_shared
 
 import kekmech.ru.ext_datetime.moscowDate
@@ -10,10 +12,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
+import kotlin.time.ExperimentalTime
 
 public sealed interface ScheduleUiState {
 
