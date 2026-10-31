@@ -1,0 +1,23 @@
+// The campus map for the code that is shared between Android and iOS: the markers (markers.json) with the offline copy,
+// the filter and the search, and the math of the tiles (Web Mercator). The screen is Compose code in :shared. The
+// Android app still draws its map with osmdroid (feature_map_impl) until it moves to the shared one.
+plugins {
+    alias(mpeix.plugins.lib.kmp)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(project(":lib_http"))
+            api(project(":lib_settings"))
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+}

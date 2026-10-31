@@ -70,7 +70,7 @@ jobs:
 
       # The tests run in the iOS simulator: they check that Base64 behaves on Kotlin/Native as it does on the JVM
       - name: Test the KMP foundation on the iOS simulator
-        run: ./gradlew :ext_kotlin:iosSimulatorArm64Test :lib_elm:iosSimulatorArm64Test :ext_datetime:iosSimulatorArm64Test :lib_settings:iosSimulatorArm64Test :lib_http:iosSimulatorArm64Test :lib_mpei_api:iosSimulatorArm64Test :lib_navigator:iosSimulatorArm64Test :lib_elm_ui:iosSimulatorArm64Test :feature_schedule_shared:iosSimulatorArm64Test :feature_notes_shared:iosSimulatorArm64Test
+        run: ./gradlew :ext_kotlin:iosSimulatorArm64Test :lib_elm:iosSimulatorArm64Test :ext_datetime:iosSimulatorArm64Test :lib_settings:iosSimulatorArm64Test :lib_http:iosSimulatorArm64Test :lib_mpei_api:iosSimulatorArm64Test :lib_navigator:iosSimulatorArm64Test :lib_elm_ui:iosSimulatorArm64Test :feature_schedule_shared:iosSimulatorArm64Test :feature_notes_shared:iosSimulatorArm64Test :feature_map_shared:iosSimulatorArm64Test
 
       - name: Install XcodeGen
         run: brew install xcodegen
