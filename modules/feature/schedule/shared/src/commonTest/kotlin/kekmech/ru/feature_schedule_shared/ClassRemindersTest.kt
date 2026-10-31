@@ -203,6 +203,7 @@ internal class ClassRemindersTest {
         load: suspend (SelectedSchedule, Int) -> Schedule? = { _, offset -> if (offset == 0) oneWeek else null },
     ) = RemindersController(
         settings = ClassReminderSettings(InMemoryKeyValueStore(), enabledByDefault),
+        changeSettings = ScheduleChangeSettings(InMemoryKeyValueStore()),
         scheduler = scheduler,
         loadWeek = load,
         scope = scope.backgroundScope,

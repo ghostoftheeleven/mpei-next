@@ -41,6 +41,11 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         ITSAppUsesNonExemptEncryption: false
+        # the refresh in the background (BackgroundRefresh.swift): the changes in the schedule and the reminders
+        UIBackgroundModes:
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - ru.mpei.hub.refresh
     preBuildScripts:
       - name: Build the Shared framework with Gradle
         basedOnDependencyAnalysis: false

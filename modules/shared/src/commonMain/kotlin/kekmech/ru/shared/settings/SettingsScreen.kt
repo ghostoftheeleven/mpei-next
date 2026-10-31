@@ -37,6 +37,14 @@ public fun SettingsScreen(reminders: RemindersController, hasSchedule: Boolean, 
         }
         Text("Настройки", style = MaterialTheme.typography.headlineSmall)
         HorizontalDivider()
+        SwitchRow(
+            title = "Изменения в расписании",
+            description = "Уведомление, когда в ближайших трёх неделях пару заменили, отменили или перенесли. " +
+                "iOS сама выбирает, когда приложению проверять расписание, обычно несколько раз в день.",
+            checked = state.changeAlerts,
+            onChange = reminders::setChangeAlerts,
+        )
+        HorizontalDivider()
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -72,6 +80,17 @@ public fun SettingsScreen(reminders: RemindersController, hasSchedule: Boolean, 
                 style = MaterialTheme.typography.bodySmall,
             )
         }
+    }
+}
+
+@Composable
+private fun SwitchRow(title: String, description: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Column(Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(description, style = MaterialTheme.typography.bodySmall)
+        }
+        Switch(checked = checked, onCheckedChange = onChange)
     }
 }
 

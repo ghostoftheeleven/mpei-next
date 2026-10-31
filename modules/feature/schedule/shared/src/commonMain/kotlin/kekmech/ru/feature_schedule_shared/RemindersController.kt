@@ -65,6 +65,8 @@ public data class RemindersUiState(
     val hoursBefore: Boolean,
     /** The student switched the reminders on, but the system does not let the app show notifications. */
     val permissionDenied: Boolean = false,
+    /** The notifications about the changes in the schedule are on. */
+    val changeAlerts: Boolean = false,
     /** How many reminders are planned now. */
     val planned: Int = 0,
 )
@@ -78,6 +80,7 @@ public data class RemindersUiState(
  */
 public class RemindersController(
     private val settings: ClassReminderSettings,
+    private val changeSettings: ScheduleChangeSettings,
     private val scheduler: ReminderScheduler,
     private val loadWeek: suspend (SelectedSchedule, Int) -> Schedule?,
     private val scope: CoroutineScope,
@@ -94,6 +97,11 @@ public class RemindersController(
     public fun sync(schedule: SelectedSchedule?) {
         selected = schedule
         plan()
+    }
+
+    /** Remembers the chosen schedule without planning: for the screens that plan the reminders in another way. */
+    public fun attach(schedule: SelectedSchedule?) {
+        selected = schedule
     }
 
     public fun setEnabled(enabled: Boolean) {
@@ -113,6 +121,20 @@ public class RemindersController(
                 settings.enabled = false
                 mutableState.value = readState().copy(permissionDenied = true)
             }
+        }
+    }
+
+    /** Switches the notifications about the changes in the schedule; they need the permission of the system too. */
+    public fun setChangeAlerts(enabled: Boolean) {
+        if (!enabled) {
+            changeSettings.enabled = false
+            mutableState.value = readState().copy(permissionDenied = mutableState.value.permissionDenied)
+            return
+        }
+        scope.launch {
+            val granted = scheduler.requestPermission()
+            changeSettings.enabled = granted
+            mutableState.value = readState().copy(permissionDenied = !granted)
         }
     }
 
@@ -160,6 +182,7 @@ public class RemindersController(
         enabled = settings.enabled,
         dayBefore = settings.isKindEnabled(ReminderKind.DAY_BEFORE),
         hoursBefore = settings.isKindEnabled(ReminderKind.HOURS_BEFORE),
+        changeAlerts = changeSettings.enabled,
     )
 
     private companion object {

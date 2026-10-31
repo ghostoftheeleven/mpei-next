@@ -23,21 +23,13 @@ import androidx.compose.ui.Modifier
 import kekmech.ru.feature_bars_shared.BarsController
 import kekmech.ru.feature_map_shared.MapController
 import kekmech.ru.feature_notes_shared.NotesController
-import kekmech.ru.feature_notes_shared.NotesStore
 import kekmech.ru.feature_schedule_shared.DashboardController
-import kekmech.ru.feature_schedule_shared.ClassReminderSettings
-import kekmech.ru.feature_schedule_shared.FavoriteSchedules
-import kekmech.ru.feature_schedule_shared.ReminderScheduler
 import kekmech.ru.feature_schedule_shared.RemindersController
-import kekmech.ru.feature_schedule_shared.ScheduleCache
 import kekmech.ru.feature_schedule_shared.ScheduleController
-import kekmech.ru.feature_schedule_shared.ScheduleService
 import kekmech.ru.feature_schedule_shared.ScheduleUiState
 import kekmech.ru.feature_schedule_shared.WeekLoader
-import kekmech.ru.lib_bars_client.BarsApi
 import kekmech.ru.shared.bars.BarsScreen
 import kekmech.ru.shared.dashboard.DashboardScreen
-import kekmech.ru.shared.map.MapDependencies
 import kekmech.ru.ui_map.MapScreen
 import kekmech.ru.shared.notes.NotesScreen
 import kekmech.ru.shared.settings.SettingsScreen
@@ -54,27 +46,18 @@ private const val TAB_BARS = 4
 
 /**
  * The root of the shared UI. The sections that were moved from the Android app so far: the home screen and the
- * schedule (milestone 3 of the iOS port, see issue #5), the notes (milestone 4) and BARS (milestone 6); the other
- * sections move here module by module.
- *
- * @param bars the client of the BARS portal; the platform decides where its session is kept
- * @param scheduleService the timetable of MPEI
- * @param scheduleCache the offline copy of the schedule; the platform decides where it is kept
- * @param favorites the groups and the teachers that the student has marked
- * @param notesStore the notes of the student for the classes
- * @param map the campus map: the markers, the tiles and the settings
- * @param reminderScheduler shows the reminders about the classes; the platform decides how
+ * schedule (milestone 3 of the iOS port, see issue #5), the notes (milestone 4), the map (milestone 5) and BARS
+ * (milestone 6); the other sections move here module by module.
  */
 @Composable
-public fun App(
-    bars: BarsApi,
-    scheduleService: ScheduleService,
-    scheduleCache: ScheduleCache,
-    favorites: FavoriteSchedules,
-    notesStore: NotesStore,
-    map: MapDependencies,
-    reminderScheduler: ReminderScheduler,
-) {
+public fun App(dependencies: AppDependencies) {
+    val bars = dependencies.bars
+    val scheduleService = dependencies.scheduleService
+    val scheduleCache = dependencies.scheduleCache
+    val favorites = dependencies.favorites
+    val notesStore = dependencies.notesStore
+    val map = dependencies.map
+    val reminderScheduler = dependencies.reminderScheduler
     MpeixTheme {
         Surface(Modifier.fillMaxSize()) {
             val scope = rememberCoroutineScope()
@@ -90,7 +73,8 @@ public fun App(
             val reminders = remember(scheduleService, scheduleCache, reminderScheduler) {
                 val loader = WeekLoader(scheduleService, scheduleCache)
                 RemindersController(
-                    settings = ClassReminderSettings(map.settings),
+                    settings = dependencies.reminderSettings,
+                    changeSettings = dependencies.changeSettings,
                     scheduler = reminderScheduler,
                     loadWeek = { schedule, offset -> loader.load(schedule, offset).schedule },
                     scope = scope,
@@ -104,8 +88,12 @@ public fun App(
             LaunchedEffect(notes, selected?.name) { notes.setSchedule(selected?.name) }
             // the home screen is loaded again every time it appears, so "now" is not stale
             LaunchedEffect(dashboard, selected, tab) { if (tab == TAB_HOME) dashboard.show(selected) }
-            // the reminders are planned again when the app is opened and when the chosen schedule changes
-            LaunchedEffect(reminders, selected) { reminders.sync(selected) }
+            // when the app is opened and when the chosen schedule changes: the changes in the schedule are looked for and the
+            // reminders are planned again by the fresh schedule; if nothing is chosen, the reminders of the old one go away
+            LaunchedEffect(reminders, selected) {
+                reminders.attach(selected)
+                if (selected == null) reminders.sync(null) else dependencies.backgroundSync.run()
+            }
             LaunchedEffect(schedule) { schedule.start() }
             LaunchedEffect(barsController) { barsController.start() }
 
